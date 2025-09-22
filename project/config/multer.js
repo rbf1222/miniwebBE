@@ -26,6 +26,7 @@ const fileFilter = (req, file, cb) => {
     else cb(new Error('Only Excel or CSV files are allowed'), false);
 };
 
+// 파일 저장 방식(storage)을 적용한 multer 미들웨어 생성
 const upload = multer({ storage, fileFilter, limits: { fileSize: 20 * 1024 * 1024 } });
 
 export default upload;
