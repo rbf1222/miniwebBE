@@ -1,6 +1,6 @@
 import { useAuthStore } from "./auth"
 
-const API_BASE = "http://192.168.0.165:5000/api"
+const API_BASE = "http://주소/api"
 
 interface ApiError {
   message: string
