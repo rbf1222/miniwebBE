@@ -2,6 +2,8 @@
 
 import * as postService from '../services/postService.js';
 import { parseExcelToJson } from '../services/excelService.js';
+import path from 'path';
+import { exec } from 'child_process';
 
 export async function uploadPost(req, res, next) {
     try {
@@ -10,8 +12,35 @@ export async function uploadPost(req, res, next) {
         const filePath = `/uploads/${req.file.filename}`; // served statically
         const authorId = req.user.id;
 
-        // Save in DB
-        const post = await postService.uploadPost({ title, filePath, authorId });
+// <-------------------- PYTHON ------------------->
+        // ✅ Python 스크립트 실행 준비
+        const excelPath = path.join(process.cwd(), 'uploads', req.file.filename);
+        const outputImgPath = path.join(
+            process.cwd(),
+            'uploads',
+            'visible',
+            `${path.parse(req.file.filename).name}.png`
+        );
+
+        const pyPath = path.join(process.cwd(), 'scripts', 'visualize.py');
+
+        // 비동기로 Python 실행 (실패해도 게시글 업로드는 되도록)
+        exec(`python "${pyPath}" "${excelPath}" "${outputImgPath}"`, (error, stdout, stderr) => {
+            if (error) {
+                console.error('❌ Python 실행 오류:', stderr);
+            } else {
+                console.log('✅ 그래프 생성 완료:', outputImgPath);
+            }
+        });
+// <-------------------- PYTHON ------------------->
+
+        // ✅ DB 저장 (엑셀 경로 + 시각화 이미지 경로)
+        const post = await postService.uploadPost({
+            title,
+            filePath,
+            visibleFile: `/uploads/visible/${path.parse(req.file.filename).name}.png`,
+            authorId,
+        });
 
         // Optional: parse excel now and store or return brief stats
         // const parsed = parseExcelToJson(req.file.path);
