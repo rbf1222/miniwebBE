@@ -3,8 +3,8 @@
 import * as Post from '../models/Post.js'
 import * as Comment from '../models/Comment.js'
 
-export async function uploadPost({ title, filePath, authorId }) {
-    const post = await Post.createPost({ title, excelFilePath: filePath, authorId });
+export async function uploadPost({ title, filePath, authorId ,visible_file}) {
+    const post = await Post.createPost({ title, excelFilePath: filePath, authorId ,visible_file});
     return post;
 }
 

@@ -4,28 +4,30 @@ import * as postService from '../services/postService.js';
 import { parseExcelToJson } from '../services/excelService.js';
 import path from 'path';
 import { exec } from 'child_process';
+import { fileURLToPath } from 'url';
 
 export async function uploadPost(req, res, next) {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
     try {
         const title = req.body.title;
         if (!req.file) return res.status(400).json({ error: true, message: 'File required' });
-        const filePath = `/uploads/${req.file.filename}`; // served statically
+        const filePath = path.join(__dirname, '../uploads', req.file.filename);
 
+        console.log(filePath);
         const authorId = req.user.id;
 
-// <-------------------- PYTHON ------------------->
+        // <-------------------- PYTHON ------------------->
         // ✅ Python 스크립트 실행 준비
-        const outputImgPath = `/uploads/visible/${path.parse(req.file.filename).name}.png`
-        
-        // path.join(
-        //     process.cwd(),
-        //     'uploads',
-        //     'visible',
-        //     `${path.parse(req.file.filename).name}.png`
-        // );
+        const outputImgPath = path.join(
+            __dirname,
+            '../uploads',
+            'visible',
+            `${path.parse(req.file.filename).name}.png`
+        );
+        console.log(outputImgPath);
 
-        const pyPath = '/scripts/visualize.py';
-        //path.join(process.cwd(), 'scripts', 'visualize.py');
+        const pyPath = path.join(__dirname, '../scripts', 'visualize.py');
 
         // 비동기로 Python 실행 (실패해도 게시글 업로드는 되도록)
         exec(`python "${pyPath}" "${filePath}" "${outputImgPath}"`, (error, stdout, stderr) => {
@@ -35,14 +37,14 @@ export async function uploadPost(req, res, next) {
                 console.log('✅ 그래프 생성 완료:', outputImgPath);
             }
         });
-// <-------------------- PYTHON ------------------->
+        // <-------------------- PYTHON ------------------->
 
         // ✅ DB 저장 (엑셀 경로 + 시각화 이미지 경로)
         const post = await postService.uploadPost({
             title,
             filePath,
-            visibleFile: `${outputImgPath}`,
             authorId,
+            visible_file: outputImgPath
         });
 
         // Optional: parse excel now and store or return brief stats

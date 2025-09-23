@@ -1,12 +1,12 @@
 // src/models/Post.js
 import db from '../config/db.js'
 
-export async function createPost({ title, excelFilePath, authorId }) {
+export async function createPost({ title, excelFilePath, authorId, visible_file }) {
     const [result] = await db.query(
-        'INSERT INTO posts (title, excel_file, author_id, created_at) VALUES (?, ?, ?, NOW())',
-        [title, excelFilePath, authorId]
+        'INSERT INTO posts (title, excel_file, author_id, visible_file,created_at) VALUES (?, ?, ? ,?, NOW())',
+        [title, excelFilePath, authorId, visible_file]
     );
-    return { id: result.insertId, title, excelFilePath, authorId };
+    return { id: result.insertId, title, excelFilePath, visible_file, authorId };
 }
 
 export async function getAllPosts() {
@@ -21,7 +21,7 @@ export async function getAllPosts() {
 export async function getPostById(id) {
     console.log(id)
     const [rows] = await db.query(
-        `SELECT id, title, author_id AS author, excel_file AS fileUrl, created_at
+        `SELECT id, title, author_id AS author, excel_file AS fileUrl, visible_file AS visibleUrl, created_at
      FROM posts p
      WHERE p.id = ?`,
         [id]
