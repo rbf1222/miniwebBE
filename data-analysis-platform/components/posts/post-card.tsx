@@ -2,11 +2,12 @@ import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/ca
 import { FileText, User, Calendar } from "lucide-react"
 import Link from "next/link"
 
+// 이 인터페이스는 백엔드에서 받는 데이터 구조를 정확하게 반영합니다.
 interface Post {
-  id: string
-  title: string
-  author: string
-  createdAt: string
+  id: string;
+  title: string;
+  username:string;
+  created_at: string;
 }
 
 interface PostCardProps {
@@ -14,13 +15,22 @@ interface PostCardProps {
 }
 
 export function PostCard({ post }: PostCardProps) {
+  // 날짜 문자열을 처리하는 함수를 개선하여 'Invalid Date' 오류를 방지합니다.
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
-  }
+    // 유효한 날짜 문자열인지 확인
+    if (!dateString || isNaN(new Date(dateString).getTime())) {
+      return "날짜 정보 없음"; // 유효하지 않은 경우 대체 텍스트 반환
+    }
+
+    // 유효한 경우, 'YYYY년 M월 D일' 형식으로 포맷
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1
+    const day = date.getDate();
+    const hour = date.getHours();
+    const min = date.getMinutes();
+    return `${year}년 ${month}월 ${day}일 ${hour}시 ${min}분`;
+  };
 
   return (
     <Link href={`/posts/${post.id}`}>
@@ -32,18 +42,20 @@ export function PostCard({ post }: PostCardProps) {
               <CardTitle className="text-lg">{post.title}</CardTitle>
             </div>
           </div>
-          <CardDescription className="flex items-center gap-4 text-sm">
+          <CardDescription className="flex items-center gap-4 text-sm mt-2">
+            {/* 작성자 정보 */}
             <div className="flex items-center gap-1">
-              <User className="h-4 w-4" />
-              <span>{post.author}</span>
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span>{post.username}</span>
             </div>
+            {/* 게시 날짜 정보 */}
             <div className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              <span>{formatDate(post.createdAt)}</span>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span>{formatDate(post.created_at)}</span>
             </div>
           </CardDescription>
         </CardHeader>
       </Card>
     </Link>
-  )
+  );
 }

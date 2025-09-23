@@ -10,14 +10,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Download, FileText, User, Calendar, MessageCircle, BarChart3 } from "lucide-react"
-import { mock } from "node:test"
 
 interface Post {
   id: string
   title: string
   author: string
   fileUrl: string
-  createdAt: string
+  created_at: string   // ✅ snake_case 로 변경
+  username:string
   comments: Comment[]
 }
 
@@ -35,78 +35,72 @@ export default function PostDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-  async function fetchPost() {
-    setIsLoading(true)
+    async function fetchPost() {
+      setIsLoading(true)
+      try {
+        const res = await fetch(`http://192.168.0.165:5000/api/posts/${postId}`)
+        if (!res.ok) throw new Error("게시물 로드 실패")
+        const data: Post = await res.json()
+        setPost(data)
+      } catch (err) {
+        console.error(err)
+        setPost(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchPost()
+  }, [postId])
+
+  const handleCommentAdded = async (newContent: string) => {
     try {
-      const res = await fetch(`http://192.168.0.165:5000/api/posts/${postId}`)
-      if (!res.ok) throw new Error("게시물 로드 실패")
-      const data: Post = await res.json()
-      setPost(data)
+      const res = await fetch(`http://192.168.0.165:5000/api/posts/${postId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: newContent }),
+      })
+      if (!res.ok) throw new Error("댓글 추가 실패")
+      const newComment: Comment = await res.json()
+      setPost((prev) => (prev ? { ...prev, comments: [...prev.comments, newComment] } : prev))
     } catch (err) {
       console.error(err)
-      setPost(null)
-    } finally {
-      setIsLoading(false)
     }
   }
 
-  fetchPost()
-}, [postId])
-
-
-  const handleCommentAdded = async (newContent: string) => {
-  try {
-    const res = await fetch(`http://192.168.0.165:5000/api/posts/${postId}/comments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: newContent }),
-    })
-    if (!res.ok) throw new Error("댓글 추가 실패")
-    const newComment: Comment = await res.json()
-    setPost((prev) => prev ? { ...prev, comments: [...prev.comments, newComment] } : prev)
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-
   const handleCommentUpdated = async (commentId: string, newContent: string) => {
-  try {
-    const res = await fetch(`http://192.168.0.165:5000/api/posts/${postId}/comments/${commentId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: newContent }),
-    })
-    if (!res.ok) throw new Error("댓글 수정 실패")
-    const updatedComment: Comment = await res.json()
-    setPost((prev) =>
-      prev
-        ? {
-            ...prev,
-            comments: prev.comments.map((c) => c.id === commentId ? updatedComment : c),
-          }
-        : prev
-    )
-  } catch (err) {
-    console.error(err)
+    try {
+      const res = await fetch(`http://192.168.0.165:5000/api/posts/${postId}/comments/${commentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: newContent }),
+      })
+      if (!res.ok) throw new Error("댓글 수정 실패")
+      const updatedComment: Comment = await res.json()
+      setPost((prev) =>
+        prev
+          ? {
+              ...prev,
+              comments: prev.comments.map((c) => (c.id === commentId ? updatedComment : c)),
+            }
+          : prev
+      )
+    } catch (err) {
+      console.error(err)
+    }
   }
-}
-
 
   const handleCommentDeleted = async (commentId: string) => {
-  try {
-    const res = await fetch(`http://192.168.0.165:5000/api/posts/${postId}/comments/${commentId}`, {
-      method: "DELETE",
-    })
-    if (!res.ok) throw new Error("댓글 삭제 실패")
-    setPost((prev) =>
-      prev ? { ...prev, comments: prev.comments.filter((c) => c.id !== commentId) } : prev
-    )
-  } catch (err) {
-    console.error(err)
+    try {
+      const res = await fetch(`http://192.168.0.165:5000/api/posts/${postId}/comments/${commentId}`, {
+        method: "DELETE",
+      })
+      if (!res.ok) throw new Error("댓글 삭제 실패")
+      setPost((prev) => (prev ? { ...prev, comments: prev.comments.filter((c) => c.id !== commentId) } : prev))
+    } catch (err) {
+      console.error(err)
+    }
   }
-}
-
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ko-KR", {
@@ -164,11 +158,12 @@ export default function PostDetailPage() {
                 <CardDescription className="flex items-center gap-4">
                   <div className="flex items-center gap-1">
                     <User className="h-4 w-4" />
-                    <span>{post.author}</span>
+                    <span>{post.username}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    <span>{formatDate(post.createdAt)}</span>
+                    {/* ✅ createdAt → created_at */}
+                    <span>{formatDate(post.created_at)}</span>
                   </div>
                 </CardDescription>
               </CardHeader>

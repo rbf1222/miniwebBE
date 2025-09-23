@@ -12,7 +12,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { isAuthenticated, user, initialize } = useAuthStore()
+  const { isAuthenticated, user, initialize, isInitializing } = useAuthStore()
   const router = useRouter()
 
   useEffect(() => {
@@ -20,8 +20,11 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   }, [initialize])
 
   useEffect(() => {
+    if (isInitializing) return
+
+    // TODO
     if (!isAuthenticated) {
-      router.push("/login")
+      router.push("/login")      
       return
     }
 
@@ -29,7 +32,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
       router.push("/posts")
       return
     }
-  }, [isAuthenticated, user, requiredRole, router])
+  }, [isAuthenticated, user, requiredRole, router, isInitializing])
 
   if (!isAuthenticated) {
     return null

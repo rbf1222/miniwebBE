@@ -7,6 +7,7 @@ interface User {
 interface AuthState {
   user: User | null
   isAuthenticated: boolean
+  isInitializing: boolean
   login: (token: string, role: "admin" | "user", username: string) => void
   logout: () => void
   initialize: () => void
@@ -17,6 +18,7 @@ import { create } from "zustand"
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isAuthenticated: false,
+  isInitializing: true,
 
   login: (token: string, role: "admin" | "user", username: string) => {
     const user = { username, role, token }
@@ -38,10 +40,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const role = localStorage.getItem("auth_role") as "admin" | "user" | null
     const username = localStorage.getItem("auth_username")
 
+    console.log(`token ${token}`);
+    console.log(`role ${role}`);
+    console.log(`username ${username}`);
+
     if (token && role && username) {
+      // ✅ 저장된 로그인 정보가 있다면
       set({
         user: { username, role, token },
-        isAuthenticated: true,
+        isAuthenticated: true, // ✅ 여기서도 true로 설정됩니다 (자동 로그인)
+        isInitializing: false,
+      })
+    } else {
+      // ⛔ 로그인 정보 없으면 로그인 상태 아님
+      set({
+        isInitializing: false,
       })
     }
   },

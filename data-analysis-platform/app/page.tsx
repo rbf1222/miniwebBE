@@ -79,7 +79,7 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              엑셀 업로드 → CSV 변환 → OpenAI 분석 → 시각화/통계
+              엑셀 업로드 → 데이터 시각화 → OpenAI 분석 → 통계 요약
             </motion.p>
             <motion.div
               className="flex flex-col sm:flex-row gap-4 justify-center"

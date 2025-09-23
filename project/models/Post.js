@@ -11,18 +11,21 @@ export async function createPost({ title, excelFilePath, authorId, visible_file 
 
 export async function getAllPosts() {
     const [rows] = await db.query(
-        `SELECT *
+        `SELECT p.id, p.title, u.username , p.created_at
      FROM posts p
+     JOIN users u
+     WHERE p.author_id = u.id
      ORDER BY p.id DESC`
     );
     return rows;
 }
 
 export async function getPostById(id) {
-    console.log(id)
     const [rows] = await db.query(
-        `SELECT id, title, author_id AS author, excel_file AS fileUrl, visible_file AS visibleUrl, created_at
+        `SELECT p.id, p.title, u.username , p.created_at , p.excel_file, p.visible_file
      FROM posts p
+     JOIN users u
+     ON p.author_id = u.id 
      WHERE p.id = ?`,
         [id]
     );

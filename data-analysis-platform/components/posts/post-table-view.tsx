@@ -2,10 +2,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import Link from "next/link"
 
 interface Post {
-  id: string
-  title: string
-  author: string
-  createdAt: string
+  id: string;
+  title: string;
+  username:string;
+  created_at: string;
 }
 
 interface PostTableViewProps {
@@ -48,8 +48,8 @@ export function PostTableView({ posts }: PostTableViewProps) {
                     {post.title}
                   </Link>
                 </TableCell>
-                <TableCell>{post.author}</TableCell>
-                <TableCell>{formatDate(post.createdAt)}</TableCell>
+                <TableCell>{post.username}</TableCell>
+                <TableCell>{formatDate(post.created_at)}</TableCell>
               </TableRow>
             ))
           )}

@@ -11,12 +11,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
 import { Search, Grid, List, FileText } from "lucide-react"
 
+// 이 인터페이스는 백엔드에서 받는 데이터 구조를 정의합니다.
+// 작성자(author)와 생성일(createdAt) 필드가 포함되어 있습니다.
 interface Post {
-  id: string
-  title: string
-  author: string
-  createdAt: string
+  id: string;
+  title: string;
+  username:string;
+  created_at: string;
 }
+
 
 export default function PostsPage() {
   const [posts, setPosts] = useState<Post[]>([])
@@ -26,12 +29,12 @@ export default function PostsPage() {
   const [viewMode, setViewMode] = useState<"card" | "table">("card")
   const [isLoading, setIsLoading] = useState(true)
 
-  // 서버에서 게시물 불러오기
+  // 서버에서 게시물 데이터를 불러오는 부분입니다.
   useEffect(() => {
     setIsLoading(true)
-    fetch("http://192.168.0.165:5000/api/posts") // 여기를 실제 서버 API로 변경
+    fetch("http://192.168.0.165:5000/api/posts")
       .then((res) => {
-        if (!res.ok) throw new Error("게시물 로드 실패")
+        if (!res.ok) throw new Error("Failed to load posts")
         return res.json()
       })
       .then((data: Post[]) => {
@@ -44,20 +47,20 @@ export default function PostsPage() {
       })
   }, [])
 
-  // 필터링 및 정렬
+  // 검색어와 정렬 순서에 따라 게시물을 필터링하고 정렬합니다.
   useEffect(() => {
     const filtered = posts.filter(
       (post) =>
         post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.author.toLowerCase().includes(searchTerm.toLowerCase())
+        post.username.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "newest":
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         case "oldest":
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         case "title":
           return a.title.localeCompare(b.title)
         default:
@@ -132,7 +135,7 @@ export default function PostsPage() {
             </CardContent>
           </Card>
 
-          {/* Posts */}
+          {/* 게시물이 없을 때 표시되는 부분 */}
           {filteredPosts.length === 0 ? (
             <Card>
               <CardContent className="py-16 text-center">
@@ -144,12 +147,14 @@ export default function PostsPage() {
               </CardContent>
             </Card>
           ) : viewMode === "card" ? (
+            // 카드 뷰
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredPosts.map((post) => (
                 <PostCard key={post.id} post={post} />
               ))}
             </div>
           ) : (
+            // 테이블 뷰
             <PostTableView posts={filteredPosts} />
           )}
         </div>
@@ -157,3 +162,4 @@ export default function PostsPage() {
     </ProtectedRoute>
   )
 }
+

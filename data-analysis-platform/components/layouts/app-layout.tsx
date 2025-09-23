@@ -24,8 +24,12 @@ export function AppLayout({ children }: AppLayoutProps) {
   }, [initialize])
 
   const handleLogout = () => {
-    logout()
-    router.push("/")
+    try {
+      logout()
+    } finally {
+      router.replace("/")
+      router.refresh()
+    }
   }
 
   return (
@@ -35,8 +39,8 @@ export function AppLayout({ children }: AppLayoutProps) {
           <Link href="/posts" className="text-xl font-bold text-primary">
             DataViz Platform
           </Link>
-          <div className="flex items-center gap-4">
-            <nav className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <nav className="hidden sm:flex items-center gap-4">
               <Button variant="ghost" asChild>
                 <Link href="/posts">게시물</Link>
               </Button>
@@ -49,11 +53,19 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </Button>
               )}
             </nav>
+
+            {/* ✅ 상단바에 눈에 띄는 로그아웃 버튼 추가 */}
+            <Button variant="secondary" onClick={handleLogout} className="hidden md:inline-flex">
+              <LogOut className="h-4 w-4 mr-2" />
+              로그아웃
+            </Button>
+
+            {/* 아바타 드롭다운 (모바일/보조 용) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback>{user?.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>{user?.username?.charAt(0)?.toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -62,7 +74,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <User className="h-4 w-4" />
                   <span>{user?.username}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2">
+                <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 md:hidden">
                   <LogOut className="h-4 w-4" />
                   <span>로그아웃</span>
                 </DropdownMenuItem>

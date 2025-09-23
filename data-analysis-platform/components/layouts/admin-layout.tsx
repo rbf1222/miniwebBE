@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuthStore } from "@/lib/auth"
-import { LogOut, User, Upload, FileText, Brain } from "lucide-react"
+import { LogOut, User, Upload, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface AdminLayoutProps {
@@ -25,14 +25,18 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }, [initialize])
 
   const handleLogout = () => {
-    logout()
-    router.push("/")
+    try {
+      logout() // 내부에서 localStorage/상태 정리
+    } finally {
+      router.replace("/") // 메인으로
+      router.refresh()
+    }
   }
 
+  // ❌ AI 분석 제거
   const sidebarItems = [
     { href: "/admin", icon: Upload, label: "업로드", exact: true },
     { href: "/admin/posts", icon: FileText, label: "게시물 관리" },
-    { href: "/admin/analysis", icon: Brain, label: "AI 분석" },
   ]
 
   return (
@@ -70,15 +74,25 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <h1 className="text-2xl font-semibold">관리자 패널</h1>
               <p className="text-sm text-muted-foreground">데이터 업로드 및 게시물 관리</p>
             </div>
-            <div className="flex items-center gap-4">
+
+            <div className="flex items-center gap-3">
+              {/* 사용자 뷰 이동 */}
               <Button variant="ghost" asChild>
                 <Link href="/posts">사용자 뷰</Link>
               </Button>
+
+              {/* ✅ 상단바에 눈에 띄는 로그아웃 버튼 추가 */}
+              <Button variant="secondary" onClick={handleLogout} className="hidden md:inline-flex">
+                <LogOut className="h-4 w-4 mr-2" />
+                로그아웃
+              </Button>
+
+              {/* 아바타 메뉴 (모바일/보조 용) */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback>{user?.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback>{user?.username?.charAt(0)?.toUpperCase()}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
@@ -87,7 +101,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     <User className="h-4 w-4" />
                     <span>{user?.username}</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2">
+                  <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 md:hidden">
                     <LogOut className="h-4 w-4" />
                     <span>로그아웃</span>
                   </DropdownMenuItem>
