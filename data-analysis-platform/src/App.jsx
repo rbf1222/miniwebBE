@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getAuthToken, getAuthRole } from "./lib/storage.js"
+import { clearAuth } from "./lib/storage.js" // Import clearAuth instead of individual functions
 import TopNav from "./components/TopNav.jsx"
 import DemoBanner from "./components/DemoBanner.jsx"
 import ToastHost from "./components/ToastHost.jsx"
@@ -26,19 +26,25 @@ export default function App() {
   const [isDemoMode, setIsDemoMode] = useState(false)
 
   useEffect(() => {
-    const token = getAuthToken()
-    const role = getAuthRole()
-    if (token && role) {
-      setAuthToken(token)
-      setAuthRole(role)
-      setIsDemoMode(token === "demo-token")
+    try {
+      const token = localStorage.getItem("auth_token")
+      const role = localStorage.getItem("auth_role")
 
-      // Navigate to appropriate dashboard
-      if (role === "admin") {
-        setCurrentView("adminDashboard")
-      } else {
-        setCurrentView("userHome")
+      if (token && role) {
+        setAuthToken(token)
+        setAuthRole(role)
+        setIsDemoMode(token === "demo-token")
+
+        // Navigate to appropriate dashboard
+        if (role === "admin") {
+          setCurrentView("adminDashboard")
+        } else {
+          setCurrentView("userHome")
+        }
       }
+    } catch (error) {
+      console.error("Failed to restore auth state:", error)
+      clearAuth()
     }
   }, [])
 
@@ -54,8 +60,7 @@ export default function App() {
   }
 
   const logout = () => {
-    localStorage.removeItem("auth_token")
-    localStorage.removeItem("auth_role")
+    clearAuth()
     setAuthToken(null)
     setAuthRole(null)
     setIsDemoMode(false)

@@ -346,14 +346,16 @@ export function UploadWizard({ onSuccess }: UploadWizardProps) {
               <div className="space-y-2">
                 <Label>그룹화 (선택사항)</Label>
                 <Select
-                  value={chartConfig.groupBy || ""}
-                  onValueChange={(value) => setChartConfig({ ...chartConfig, groupBy: value || undefined })}
+                  value={chartConfig.groupBy || "none"}
+                  onValueChange={(value) =>
+                    setChartConfig({ ...chartConfig, groupBy: value === "none" ? undefined : value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="그룹화 컬럼 선택" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">없음</SelectItem>
+                    <SelectItem value="none">없음</SelectItem>
                     {preview.headers.map((header) => (
                       <SelectItem key={header} value={header}>
                         {header}

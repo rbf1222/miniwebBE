@@ -11,9 +11,8 @@ import ChartPreview from "../components/ChartPreview.jsx"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
-import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group"
-import { Checkbox } from "../components/ui/checkbox"
-import { uploadPost, analyzePost } from "../lib/api.js"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
+import { uploadPost, analyzePost, getPost } from "../lib/api.js"
 import { showToast } from "../components/ToastHost.jsx"
 
 export default function AdminPostNew({ navigate }) {
@@ -21,9 +20,9 @@ export default function AdminPostNew({ navigate }) {
   const [file, setFile] = useState(null)
   const [workbook, setWorkbook] = useState(null)
   const [sheetNames, setSheetNames] = useState([])
-  const [selectedSheet, setSelectedSheet] = useState("")
+  const [selectedSheet, setSelectedSheet] = useState(undefined)
   const [columns, setColumns] = useState([])
-  const [selectedColumns, setSelectedColumns] = useState([])
+  const [selectedColumn, setSelectedColumn] = useState(undefined) // Single column selection for X-axis
   const [postId, setPostId] = useState(null)
   const [loading, setLoading] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
@@ -31,12 +30,11 @@ export default function AdminPostNew({ navigate }) {
 
   const handleFileSelect = useCallback((selectedFile) => {
     setFile(selectedFile)
-    setSelectedSheet("")
+    setSelectedSheet(undefined) // Reset to undefined instead of empty string
     setColumns([])
-    setSelectedColumns([])
+    setSelectedColumn(undefined) // Reset single column selection
     setAnalysisResult(null)
 
-    // Parse Excel file immediately
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
@@ -45,10 +43,7 @@ export default function AdminPostNew({ navigate }) {
         setWorkbook(wb)
         setSheetNames(wb.SheetNames)
 
-        if (wb.SheetNames.length > 0) {
-          setSelectedSheet(wb.SheetNames[0])
-          extractColumns(wb, wb.SheetNames[0])
-        }
+        showToast("Excel 파일이 성공적으로 로드되었습니다", "success")
       } catch (error) {
         showToast("Excel 파일 파싱 중 오류가 발생했습니다", "error")
       }
@@ -62,9 +57,18 @@ export default function AdminPostNew({ navigate }) {
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
 
       if (jsonData.length > 0) {
-        const headers = jsonData[0].filter((header) => header && header.toString().trim())
-        setColumns(headers)
-        setSelectedColumns([])
+        const rawHeaders = jsonData[0] || []
+        const cleanHeaders = rawHeaders
+          .map((header, index) => {
+            if (!header || header.toString().trim() === "") {
+              return `UNNAMED_COL_${index + 1}`
+            }
+            return header.toString().trim()
+          })
+          .filter(Boolean)
+
+        setColumns(cleanHeaders)
+        setSelectedColumn(undefined) // Reset column selection when sheet changes
       }
     } catch (error) {
       showToast("컬럼 추출 중 오류가 발생했습니다", "error")
@@ -73,14 +77,10 @@ export default function AdminPostNew({ navigate }) {
 
   const handleSheetChange = (sheetName) => {
     setSelectedSheet(sheetName)
-    setSelectedColumns([])
+    setSelectedColumn(undefined) // Reset column selection
     if (workbook) {
       extractColumns(workbook, sheetName)
     }
-  }
-
-  const handleColumnToggle = (column) => {
-    setSelectedColumns((prev) => (prev.includes(column) ? prev.filter((c) => c !== column) : [...prev, column]))
   }
 
   const handlePublish = async () => {
@@ -94,6 +94,27 @@ export default function AdminPostNew({ navigate }) {
       const response = await uploadPost({ title, file })
       setPostId(response.postId)
       showToast(response.message, "success")
+
+      let retryCount = 0
+      const maxRetries = 3
+      const retryInterval = 500
+
+      const fetchPostDetail = async () => {
+        try {
+          await getPost(response.postId)
+          navigate("postDetail", { id: response.postId })
+        } catch (error) {
+          if (retryCount < maxRetries) {
+            retryCount++
+            setTimeout(fetchPostDetail, retryInterval)
+          } else {
+            showToast("게시물 상세 정보를 불러오는데 실패했습니다", "error")
+            navigate("postsList")
+          }
+        }
+      }
+
+      fetchPostDetail()
     } catch (error) {
       showToast(error.message, "error")
     } finally {
@@ -102,7 +123,7 @@ export default function AdminPostNew({ navigate }) {
   }
 
   const handleServerAnalysis = async () => {
-    if (!postId || !selectedSheet || selectedColumns.length === 0) {
+    if (!postId || !selectedSheet || !selectedColumn) {
       showToast("게시물 발행 후 시트와 컬럼을 선택해주세요", "error")
       return
     }
@@ -112,7 +133,7 @@ export default function AdminPostNew({ navigate }) {
       const response = await analyzePost({
         postId,
         sheet: selectedSheet,
-        columns: selectedColumns,
+        column: selectedColumn, // Send single column name directly
       })
       setAnalysisResult(response)
       showToast("서버 분석이 완료되었습니다", "success")
@@ -123,56 +144,54 @@ export default function AdminPostNew({ navigate }) {
     }
   }
 
-  const resetSelection = () => {
-    setSelectedSheet("")
-    setColumns([])
-    setSelectedColumns([])
-  }
-
   const getChartData = () => {
-    if (!workbook || !selectedSheet || selectedColumns.length === 0) return null
+    if (!workbook || !selectedSheet || !selectedColumn) return null
 
     try {
       const worksheet = workbook.Sheets[selectedSheet]
       const jsonData = XLSX.utils.sheet_to_json(worksheet)
 
-      return selectedColumns.map((column) => {
-        const values = jsonData.map((row) => row[column] || "NULL")
-        const counts = values.reduce((acc, val) => {
-          acc[val] = (acc[val] || 0) + 1
-          return acc
-        }, {})
+      const values = jsonData.map((row) => {
+        const value = row[selectedColumn]
+        return value === undefined || value === null || value === "" ? "NULL" : value.toString()
+      })
 
-        // Sort by count and aggregate small categories
-        const sortedEntries = Object.entries(counts).sort((a, b) => b[1] - a[1])
-        const total = values.length
-        const threshold = total * 0.03 // 3%
+      const counts = values.reduce((acc, val) => {
+        acc[val] = (acc[val] || 0) + 1
+        return acc
+      }, {})
 
-        const processedData = []
-        let othersCount = 0
+      // Sort by count and aggregate small categories
+      const sortedEntries = Object.entries(counts).sort((a, b) => b[1] - a[1])
+      const total = values.length
+      const threshold = total * 0.03 // 3%
 
-        sortedEntries.forEach(([label, count]) => {
-          if (count >= threshold) {
-            processedData.push({ label, count, percentage: (count / total) * 100 })
-          } else {
-            othersCount += count
-          }
-        })
+      const processedData = []
+      let othersCount = 0
 
-        if (othersCount > 0) {
-          processedData.push({
-            label: "Others",
-            count: othersCount,
-            percentage: (othersCount / total) * 100,
-          })
-        }
-
-        return {
-          column,
-          data: processedData,
-          total,
+      sortedEntries.forEach(([label, count]) => {
+        if (count >= threshold) {
+          processedData.push({ label, count, percentage: (count / total) * 100 })
+        } else {
+          othersCount += count
         }
       })
+
+      if (othersCount > 0) {
+        processedData.push({
+          label: "Others",
+          count: othersCount,
+          percentage: (othersCount / total) * 100,
+        })
+      }
+
+      return [
+        {
+          column: selectedColumn,
+          data: processedData,
+          total,
+        },
+      ]
     } catch (error) {
       console.error("Chart data generation error:", error)
       return null
@@ -201,6 +220,7 @@ export default function AdminPostNew({ navigate }) {
               <FormRow>
                 <Label>Excel 파일</Label>
                 <FileDropzone onFileSelect={handleFileSelect} accept=".xlsx,.xls" selectedFile={file} />
+                {file && <p className="text-xs text-slate-600 dark:text-slate-400">선택된 파일: {file.name}</p>}
               </FormRow>
 
               <Button onClick={handlePublish} disabled={loading || !file || !title.trim()} className="w-full">
@@ -220,44 +240,53 @@ export default function AdminPostNew({ navigate }) {
 
         {/* Sheet & Column Panel */}
         <Card>
-          <Section title="시트 & 컬럼 선택">
+          <Section title="시트 & X축 컬럼 선택">
             {sheetNames.length > 0 ? (
               <div className="space-y-4">
                 <div>
-                  <Label>시트 선택</Label>
-                  <RadioGroup value={selectedSheet} onValueChange={handleSheetChange}>
-                    {sheetNames.map((sheetName) => (
-                      <div key={sheetName} className="flex items-center space-x-2">
-                        <RadioGroupItem value={sheetName} id={sheetName} />
-                        <Label htmlFor={sheetName} className="text-sm">
+                  <Label>1단계: 시트 선택</Label>
+                  <Select value={selectedSheet} onValueChange={handleSheetChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="시트를 선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sheetNames.map((sheetName) => (
+                        <SelectItem key={sheetName} value={sheetName}>
                           {sheetName}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {columns.length > 0 && (
                   <div>
-                    <Label>컬럼 선택 (복수 선택 가능)</Label>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {columns.map((column) => (
-                        <div key={column} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={column}
-                            checked={selectedColumns.includes(column)}
-                            onCheckedChange={() => handleColumnToggle(column)}
-                          />
-                          <Label htmlFor={column} className="text-sm">
-                            {column}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
+                    <Label>2단계: X축 컬럼 선택 (도넛 차트용)</Label>
+                    <Select value={selectedColumn} onValueChange={setSelectedColumn}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="컬럼을 선택하세요" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {columns.map((column) => (
+                          <SelectItem key={column} value={column}>
+                            {column.startsWith("UNNAMED_COL_") ? `(Unnamed Column ${column.split("_")[2]})` : column}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-slate-500 mt-1">Y축은 도넛 차트에서 사용되지 않습니다</p>
                   </div>
                 )}
 
-                <Button variant="outline" onClick={resetSelection} className="w-full bg-transparent">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedSheet(undefined)
+                    setColumns([])
+                    setSelectedColumn(undefined)
+                  }}
+                  className="w-full bg-transparent"
+                >
                   선택 초기화
                 </Button>
               </div>
@@ -269,12 +298,12 @@ export default function AdminPostNew({ navigate }) {
 
         {/* Chart Preview Panel */}
         <Card>
-          <Section title="차트 미리보기">
-            {selectedColumns.length > 0 ? (
+          <Section title="도넛 차트 미리보기">
+            {selectedColumn ? (
               <div className="space-y-4">
                 <ChartPreview data={getChartData()} />
 
-                {postId && process.env.VITE_ANALYZE_API_ENABLED && (
+                {postId && import.meta.env.VITE_ANALYZE_API_ENABLED && (
                   <Button
                     onClick={handleServerAnalysis}
                     disabled={analyzing}
@@ -288,22 +317,47 @@ export default function AdminPostNew({ navigate }) {
                 {analysisResult && (
                   <div className="space-y-2">
                     {analysisResult.imageUrl && (
-                      <img
-                        src={analysisResult.imageUrl || "/placeholder.svg"}
-                        alt="Server Analysis Result"
-                        className="w-full rounded-xl"
-                      />
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Python 분석 결과:</p>
+                        <img
+                          src={analysisResult.imageUrl || "/placeholder.svg"}
+                          alt="Python Analysis Result"
+                          className="w-full rounded-xl border"
+                          onError={(e) => {
+                            e.target.style.display = "none"
+                            showToast("이미지를 불러올 수 없습니다", "error")
+                          }}
+                        />
+                      </div>
                     )}
-                    {analysisResult.series && analysisResult.labels && (
-                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                        <p className="text-sm text-blue-700 dark:text-blue-300">서버 분석 결과가 반환되었습니다</p>
+                    {analysisResult.series && !analysisResult.imageUrl && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Python 분석 데이터:</p>
+                        <ChartPreview
+                          data={[
+                            {
+                              column: selectedColumn,
+                              data: analysisResult.series.map((item) => ({
+                                label: item.label,
+                                count: item.value,
+                                percentage: (item.value / analysisResult.total) * 100,
+                              })),
+                              total: analysisResult.total,
+                            },
+                          ]}
+                        />
+                      </div>
+                    )}
+                    {analysisResult.error && (
+                      <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl">
+                        <p className="text-sm text-red-700 dark:text-red-300">분석 오류: {analysisResult.error}</p>
                       </div>
                     )}
                   </div>
                 )}
               </div>
             ) : (
-              <p className="text-sm text-slate-500">컬럼을 선택하면 차트 미리보기가 표시됩니다</p>
+              <p className="text-sm text-slate-500">시트와 X축 컬럼을 선택하면 도넛 차트 미리보기가 표시됩니다</p>
             )}
           </Section>
         </Card>

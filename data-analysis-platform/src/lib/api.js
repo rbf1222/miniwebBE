@@ -164,4 +164,4 @@ export const deleteComment = (id) => del(`/comments/${id}`)
 
 export const translate = (data) => post("/translate", data)
 
-export const analyzePost = (data) => post("/admin/analyze", data)
+export const analyzePost = (data) => post("/admin/analyze-python", data)
