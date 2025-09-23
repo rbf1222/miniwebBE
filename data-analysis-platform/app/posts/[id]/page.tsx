@@ -60,7 +60,7 @@ export default function PostDetailPage() {
     setTimeout(() => {
       setPost(mockPost)
       setIsLoading(false)
-    }, 500)
+    }, 3000)
   }, [postId])
 
   const handleCommentAdded = (newComment: Comment) => {
