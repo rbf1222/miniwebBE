@@ -10,22 +10,25 @@ export async function uploadPost(req, res, next) {
         const title = req.body.title;
         if (!req.file) return res.status(400).json({ error: true, message: 'File required' });
         const filePath = `/uploads/${req.file.filename}`; // served statically
+
         const authorId = req.user.id;
 
 // <-------------------- PYTHON ------------------->
         // ✅ Python 스크립트 실행 준비
-        const excelPath = path.join(process.cwd(), 'uploads', req.file.filename);
-        const outputImgPath = path.join(
-            process.cwd(),
-            'uploads',
-            'visible',
-            `${path.parse(req.file.filename).name}.png`
-        );
+        const outputImgPath = `/uploads/visible/${path.parse(req.file.filename).name}.png`
+        
+        // path.join(
+        //     process.cwd(),
+        //     'uploads',
+        //     'visible',
+        //     `${path.parse(req.file.filename).name}.png`
+        // );
 
-        const pyPath = path.join(process.cwd(), 'scripts', 'visualize.py');
+        const pyPath = '/scripts/visualize.py';
+        //path.join(process.cwd(), 'scripts', 'visualize.py');
 
         // 비동기로 Python 실행 (실패해도 게시글 업로드는 되도록)
-        exec(`python "${pyPath}" "${excelPath}" "${outputImgPath}"`, (error, stdout, stderr) => {
+        exec(`python "${pyPath}" "${filePath}" "${outputImgPath}"`, (error, stdout, stderr) => {
             if (error) {
                 console.error('❌ Python 실행 오류:', stderr);
             } else {
@@ -38,7 +41,7 @@ export async function uploadPost(req, res, next) {
         const post = await postService.uploadPost({
             title,
             filePath,
-            visibleFile: `/uploads/visible/${path.parse(req.file.filename).name}.png`,
+            visibleFile: `${outputImgPath}`,
             authorId,
         });
 
