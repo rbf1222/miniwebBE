@@ -1,4 +1,4 @@
-const API_BASE = "http://192.168.0.165:5000/api";
+const API_BASE = import.meta?.env?.VITE_API_BASE || "/api"
 
 // Mock data for demo mode
 const mockPosts = [

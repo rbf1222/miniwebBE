@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Download, FileText, User, Calendar, MessageCircle, BarChart3 } from "lucide-react"
+import { mock } from "node:test"
 
 interface Post {
   id: string
@@ -34,62 +35,78 @@ export default function PostDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Mock data for now
-    const mockPost: Post = {
-      id: postId,
-      title: "2024년 매출 데이터 분석",
-      author: "admin",
-      fileUrl: "/api/files/sample.xlsx",
-      createdAt: "2024-01-15T10:30:00Z",
-      comments: [
-        {
-          id: "1",
-          user: "user1",
-          content: "매우 유용한 데이터네요. 특히 Q4 성장률이 인상적입니다.",
-          createdAt: "2024-01-15T14:20:00Z",
-        },
-        {
-          id: "2",
-          user: "admin",
-          content: "감사합니다. 다음 분기 예측 데이터도 곧 업로드할 예정입니다.",
-          createdAt: "2024-01-15T15:30:00Z",
-        },
-      ],
-    }
-
-    setTimeout(() => {
-      setPost(mockPost)
+  async function fetchPost() {
+    setIsLoading(true)
+    try {
+      const res = await fetch(`http://192.168.0.165:5000/api/posts/${postId}`)
+      if (!res.ok) throw new Error("게시물 로드 실패")
+      const data: Post = await res.json()
+      setPost(data)
+    } catch (err) {
+      console.error(err)
+      setPost(null)
+    } finally {
       setIsLoading(false)
-    }, 3000)
-  }, [postId])
-
-  const handleCommentAdded = (newComment: Comment) => {
-    setPost((prev) => (prev ? { ...prev, comments: [...prev.comments, newComment] } : null))
+    }
   }
 
-  const handleCommentUpdated = (commentId: string, newContent: string) => {
+  fetchPost()
+}, [postId])
+
+
+  const handleCommentAdded = async (newContent: string) => {
+  try {
+    const res = await fetch(`http://192.168.0.165:5000/api/posts/${postId}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: newContent }),
+    })
+    if (!res.ok) throw new Error("댓글 추가 실패")
+    const newComment: Comment = await res.json()
+    setPost((prev) => prev ? { ...prev, comments: [...prev.comments, newComment] } : prev)
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+
+  const handleCommentUpdated = async (commentId: string, newContent: string) => {
+  try {
+    const res = await fetch(`http://192.168.0.165:5000/api/posts/${postId}/comments/${commentId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: newContent }),
+    })
+    if (!res.ok) throw new Error("댓글 수정 실패")
+    const updatedComment: Comment = await res.json()
     setPost((prev) =>
       prev
         ? {
             ...prev,
-            comments: prev.comments.map((comment) =>
-              comment.id === commentId ? { ...comment, content: newContent } : comment,
-            ),
+            comments: prev.comments.map((c) => c.id === commentId ? updatedComment : c),
           }
-        : null,
+        : prev
     )
+  } catch (err) {
+    console.error(err)
   }
+}
 
-  const handleCommentDeleted = (commentId: string) => {
+
+  const handleCommentDeleted = async (commentId: string) => {
+  try {
+    const res = await fetch(`http://192.168.0.165:5000/api/posts/${postId}/comments/${commentId}`, {
+      method: "DELETE",
+    })
+    if (!res.ok) throw new Error("댓글 삭제 실패")
     setPost((prev) =>
-      prev
-        ? {
-            ...prev,
-            comments: prev.comments.filter((comment) => comment.id !== commentId),
-          }
-        : null,
+      prev ? { ...prev, comments: prev.comments.filter((c) => c.id !== commentId) } : prev
     )
+  } catch (err) {
+    console.error(err)
   }
+}
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ko-KR", {
