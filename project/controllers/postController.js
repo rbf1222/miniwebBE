@@ -3,7 +3,7 @@ import * as postService from '../services/postService.js'
 import fs from "fs";
 import FormData from "form-data";
 import DelayedStream from '../node_modules/delayed-stream/lib/delayed_stream.js';
-
+import sendSMS from "../services/smsService.js";
 
 export async function list(req, res, next) {
     try {
@@ -13,6 +13,8 @@ export async function list(req, res, next) {
         next(err);
     }
 }
+
+
 
 export async function detail(req, res, next) {
     try {
@@ -61,4 +63,34 @@ export async function detail(req, res, next) {
     // } catch (err) {
     //     next(err);
     // }
+}
+
+export async function createAndSendSMS(req, res, next) {
+  const { title, content, userPhone } = req.body;
+
+  if (!title || !content || !userPhone) {
+    return res.status(400).json({
+      error: "title, content, userPhone 모두 필요합니다.",
+    });
+  }
+
+  try {
+    const smsText = `[공지] ${title}\n${content}`;
+
+    await sendSMS({
+      to: userPhone,
+      text: smsText,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "게시글 등록 및 문자 발송 완료",
+    });
+  } catch (err) {
+    console.error("문자 전송 실패:", err);
+    res.status(500).json({
+      error: "문자 전송 실패",
+      detail: err.message,
+    });
+  }
 }

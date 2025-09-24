@@ -5,6 +5,7 @@ import { parseExcelToJson } from '../services/excelService.js';
 import path from 'path';
 import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
+import sendSMS from "../services/smsService.js";
 
 export async function uploadPost(req, res, next) {
     const __filename = fileURLToPath(import.meta.url);
@@ -75,3 +76,5 @@ export async function deletePost(req, res, next) {
         next(err);
     }
 }
+
+//sendSMS('01032627029', '테스트');
