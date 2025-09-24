@@ -20,6 +20,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
+app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
+
 // // static uploads (for file download)
 // app.use('/uploads', express.static('uploads'));
 
@@ -33,7 +35,6 @@ app.use("/uploads/visible", express.static("uploads/visible", {
 // ✅ uploads 폴더를 static 경로로 공개
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
 
 // register routes
 app.use('/api', routes);
