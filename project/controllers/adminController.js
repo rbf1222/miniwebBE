@@ -29,7 +29,7 @@ export async function uploadPost(req, res, next) {
         const pyPath = path.join(__dirname, '../scripts', 'visualize.py');
 
         // 비동기로 Python 실행 (실패해도 게시글 업로드는 되도록)
-        exec(`python "${pyPath}" "${filePath}" "${outputImgPath}" "${columns}"`, (error, stdout, stderr) => {
+        exec(`python "${pyPath}" "${filePath}" "${outputImgPath}" `, (error, stdout, stderr) => {
             if (error) {
                 console.error('❌ Python 실행 오류:', stderr);
             } else {

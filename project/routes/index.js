@@ -11,7 +11,6 @@ router.use('/auth', authRoutes);
 router.use('/admin', adminRoutes); 
 router.use('/posts', postRoutes);
 router.use('/', userRoutes); // 댓글 관련
-
 router.use('/translate', translateRoutes);
 
 export default router;
