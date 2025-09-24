@@ -29,8 +29,8 @@ export async function updateComment(req, res, next) {
 export async function deleteComment(req, res, next) {
     try {
         const commentId = req.params.id;
-        const userId = req.user.id;
-        await Comment.deleteComment(commentId, userId);
+        //const userId = req.user.id;
+        await Comment.deleteComment(commentId);
         res.json({ message: '댓글 삭제 성공' });
     } catch (err) {
         next(err);

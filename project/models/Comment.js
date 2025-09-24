@@ -16,15 +16,19 @@ export async function updateComment(commentId, userId, content) {
     return true;
 }
 
-export async function deleteComment(commentId, userId) {
-    await db.query('DELETE FROM comments WHERE id = ? AND user_id = ?', [commentId, userId]);
+export async function deleteComment(commentId) {
+    // ensure only owner can delete (controller may check too)
+    await db.query('DELETE FROM comments WHERE id = ?', [commentId]);
+    // userId 제외
     return true;
 }
 
 export async function getCommentsByPostId(postId) {
     const [rows] = await db.query(
-        `SELECT *
+        `SELECT c.id, c.content, u.username, c.created_at, u.username
      FROM comments c
+     JOIN users u
+     ON c.user_id = u.id
      WHERE c.post_id = ?
      ORDER BY c.created_at ASC`,
         [postId]

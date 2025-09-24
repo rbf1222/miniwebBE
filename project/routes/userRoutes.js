@@ -6,6 +6,6 @@ import * as userController from '../controllers/userController.js'
 const router = express.Router(); 
 router.post('/posts/:id/comments', authenticate, userController.createComment);
 router.put('/comments/:id',authenticate, userController.updateComment);
-router.delete('/comments/:id', authenticate, userController.deleteComment);
+router.delete('/comments/:id', userController.deleteComment);
 
 export default router;

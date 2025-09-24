@@ -12,9 +12,9 @@ export async function uploadPost(req, res, next) {
     try {
         const title = req.body.title;
         if (!req.file) return res.status(400).json({ error: true, message: 'File required' });
+        const columns = req.body.columns; // "선종,용도판정" 같은 문자열
         const filePath = path.join(__dirname, '../uploads', req.file.filename);
 
-        console.log(filePath);
         const authorId = req.user.id;
 
         // <-------------------- PYTHON ------------------->
@@ -25,12 +25,11 @@ export async function uploadPost(req, res, next) {
             'visible',
             `${path.parse(req.file.filename).name}.png`
         );
-        console.log(outputImgPath);
 
         const pyPath = path.join(__dirname, '../scripts', 'visualize.py');
 
         // 비동기로 Python 실행 (실패해도 게시글 업로드는 되도록)
-        exec(`python "${pyPath}" "${filePath}" "${outputImgPath}"`, (error, stdout, stderr) => {
+        exec(`python "${pyPath}" "${filePath}" "${outputImgPath}" "${columns}"`, (error, stdout, stderr) => {
             if (error) {
                 console.error('❌ Python 실행 오류:', stderr);
             } else {

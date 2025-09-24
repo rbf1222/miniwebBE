@@ -1,6 +1,20 @@
 // src/models/Post.js
 import db from '../config/db.js'
 
+// file주소를 URL로 변환
+function mapFilePathToUrl(filePath) {
+    if (!filePath) return null;
+
+    // 파일명이 uploads 기준으로 잘린 경우
+    const parts = filePath.split("uploads");
+    if (parts.length < 2) return null;
+
+    // \ → / 변환해서 URL 호환
+    const relativePath = parts[1].replace(/\\/g, "/");
+
+    return `/uploads${relativePath}`;
+}
+
 export async function createPost({ title, excelFilePath, authorId, visible_file }) {
     const [result] = await db.query(
         'INSERT INTO posts (title, excel_file, author_id, visible_file,created_at) VALUES (?, ?, ? ,?, NOW())',
@@ -19,7 +33,7 @@ export async function getAllPosts() {
     );
     return rows;
 }
-
+ 
 export async function getPostById(id) {
     const [rows] = await db.query(
         `SELECT p.id, p.title, u.username , p.created_at , p.excel_file, p.visible_file
@@ -29,7 +43,13 @@ export async function getPostById(id) {
      WHERE p.id = ?`,
         [id]
     );
-    return rows[0];
+    if(!rows[0]) return null;
+    
+    const post = rows[0];
+    post.excel_file = mapFilePathToUrl(post.excel_file);
+    post.visible_file = mapFilePathToUrl(post.visible_file);
+    return post;
+
 }
 
 export async function updatePost(id, { title }) {
