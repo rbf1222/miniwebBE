@@ -8,6 +8,8 @@ interface ApiError {
   errors?: Record<string, string>
 }
 
+
+
 class ApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const { user } = useAuthStore.getState()
@@ -46,6 +48,21 @@ class ApiClient {
     return response.json()
   }
 
+  async uploadPostWithColumns(fd: FormData) {
+    console.log("TRY")
+    const { user } = useAuthStore.getState()
+    console.log(user?.token)
+    const res = await fetch("http://192.168.0.165:5000/api/admin/posts", {
+      method: "POST",
+      body: fd,
+      // 인증이 필요하면 Authorization 헤더 추가
+      headers: { Authorization: `Bearer ${user?.token}` }
+    })
+    const json = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(json?.message || "업로드 실패")
+    return json
+  }
+
   // Auth endpoints
   async register(data: {
     username: string
@@ -76,6 +93,8 @@ class ApiClient {
       body: JSON.stringify(data),
     })
   }
+
+
 
   // Admin endpoints
   async uploadPost(title: string, file: File) {

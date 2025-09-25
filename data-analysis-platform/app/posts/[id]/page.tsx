@@ -178,11 +178,11 @@ export default function PostDetailPage() {
               {!imgLoaded && (
                 <div className="h-64 w-full rounded-xl bg-muted animate-pulse mb-3" />
               )}
-
+              
               {vizUrl ? (
                 <div className="rounded-xl border bg-white overflow-hidden">
                   <img
-                    src={`${vizUrl}?t=${Date.now()}`}
+                    src= {vizUrl}
                     alt="데이터 시각화"
                     className={`w-full transition-opacity ${imgLoaded ? "opacity-100" : "opacity-0"}`}
                     onLoad={() => setImgLoaded(true)}
