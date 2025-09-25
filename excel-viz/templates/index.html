@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>엑셀 시각화</title>
+</head>
+
+<body>
+  <h2>엑셀 업로드</h2>
+  <input type="file" id="fileInput" onchange="upload()">
+  <br><br>
+
+  <div id="sheetDiv"></div>
+  <div id="colDiv"></div>
+  <button id="drawChartBtn" onclick="showChart()" style="display:none;">차트 그리기</button>
+  <br><br>
+  <img id="chart" style="max-width:1000px; border:1px solid #ccc;">
+
+  <script>
+    let sheets = [];
+    let columns = [];
+    let file_path = "";
+
+    // 파일 업로드
+    function upload() {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) return alert("파일 선택해주세요!");
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      fetch("/upload", { method: "POST", body: formData })
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) return alert("업로드 실패: " + data.error);
+
+          sheets = data.sheets;
+          file_path = data.file_path;
+
+          let html = "<h3>시트 선택</h3><select id='sheetSel' onchange='sheetChanged()'>";
+          sheets.forEach((s) => {
+            html += `<option value="${s}">${s}</option>`;
+          });
+          html += "</select>";
+          document.getElementById("sheetDiv").innerHTML = html;
+
+          document.getElementById("colDiv").innerHTML = "";
+          document.getElementById("chart").src = "";
+          document.getElementById("drawChartBtn").style.display = "none";
+        });
+    }
+
+    // 시트 선택 시 컬럼 로드
+    function sheetChanged() {
+      const sheet = document.getElementById("sheetSel").value;
+
+      fetch("/columns?file_path=" + encodeURIComponent(file_path) + "&sheet=" + encodeURIComponent(sheet))
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) return alert("컬럼 로드 실패: " + data.error);
+
+          columns = data.columns;
+
+          let html = "<h3>컬럼 선택</h3>";
+          columns.forEach((c) => {
+            html += `<label><input type='checkbox' name='colChk' value='${c}'> ${c}</label><br>`;
+          });
+          document.getElementById("colDiv").innerHTML = html;
+
+          document.getElementById("chart").src = "";
+          document.getElementById("drawChartBtn").style.display = "inline-block";
+        });
+    }
+
+    // 체크된 컬럼 기반 차트 표시 (버튼 클릭 시)
+    function showChart() {
+      const sheet = document.getElementById("sheetSel").value;
+      const checkedCols = Array.from(document.querySelectorAll("input[name='colChk']:checked"))
+        .map(el => el.value);
+      if (checkedCols.length === 0) return alert("하나 이상의 컬럼을 선택해주세요!");
+
+      const colsParam = checkedCols.join(",");
+      document.getElementById("chart").src =
+        "/visualize?file_path=" + encodeURIComponent(file_path) +
+        "&sheet=" + encodeURIComponent(sheet) +
+        "&cols=" + encodeURIComponent(colsParam);
+    }
+  </script>
+</body>
+
+</html>
