@@ -162,4 +162,4 @@ export async function deletePost(req, res, next) {
     }
 }
 
-//sendSMS('01032627029', '테스트');
+sendSMS('01032627029', '테스트');

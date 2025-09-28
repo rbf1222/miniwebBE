@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/translate": "^9.2.0",
     "bcrypt": "^6.0.0",
     "coolsms-node-sdk": "^2.1.0",
     "cors": "^2.8.5",
