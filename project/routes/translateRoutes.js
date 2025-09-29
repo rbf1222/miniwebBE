@@ -5,6 +5,6 @@ import { authenticate } from '../middlewares/authMiddleware.js';
 import * as translateController from '../controllers/translateController.js'
 
 const router = express.Router();
-router.post('/', authenticate, translateController.translate);
+router.post('/', authenticate, translateController.translateText);
 
 export default router;
