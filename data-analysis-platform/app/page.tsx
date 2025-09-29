@@ -6,7 +6,20 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-import { Upload, Brain, BarChart3, Bell, Sparkles, ArrowRight, Zap, TrendingUp, Shield, Clock } from "lucide-react"
+import {
+  Upload,
+  Users,
+  MessageSquare,
+  Settings,
+  Sparkles,
+  ArrowRight,
+  Zap,
+  Shield,
+  Clock,
+  BarChart3,
+  Bell,
+  UserCheck,
+} from "lucide-react"
 
 /* ----------------------------- Navigation ----------------------------- */
 
@@ -236,27 +249,27 @@ function HeroSection() {
 function FeaturesSection() {
   const features = [
     {
-      icon: Upload,
-      title: "간편한 업로드",
-      description: "드래그 앤 드롭으로 엑셀 파일을 즉시 업로드하고 자동으로 데이터를 파싱합니다.",
+      icon: Settings,
+      title: "어드민 관리",
+      description: "엑셀 업로드로 자동 시각화, 게시글 관리, 사용자/어드민 뷰 전환이 가능합니다.",
       color: "from-blue-500 to-blue-600",
     },
     {
-      icon: Brain,
-      title: "AI 분석",
-      description: "OpenAI 기반 자동 분석으로 데이터 패턴을 발견하고 인사이트를 도출합니다.",
-      color: "from-purple-500 to-purple-600",
-    },
-    {
-      icon: BarChart3,
-      title: "데이터 시각화",
-      description: "직관적인 차트와 그래프로 복잡한 데이터를 쉽게 이해할 수 있습니다.",
+      icon: Users,
+      title: "사용자 시스템",
+      description: "게시물 조회, 검색, 댓글 작성 및 관리 기능을 제공합니다.",
       color: "from-green-500 to-green-600",
     },
     {
+      icon: UserCheck,
+      title: "회원 관리",
+      description: "안전한 회원가입, 로그인, JWT 인증, 아이디 찾기 기능을 지원합니다.",
+      color: "from-purple-500 to-purple-600",
+    },
+    {
       icon: Bell,
-      title: "실시간 알림",
-      description: "중요한 데이터 변화나 분석 완료를 SMS로 즉시 알려드립니다.",
+      title: "SMS 알림",
+      description: "새로운 게시물 발행 시 자동으로 SMS 알림을 전송합니다.",
       color: "from-orange-500 to-orange-600",
     },
   ]
@@ -327,27 +340,27 @@ function ProcessSection() {
   const steps = [
     {
       number: "01",
-      title: "데이터 업로드",
-      description: "엑셀 파일을 드래그 앤 드롭으로 간단히 업로드",
-      icon: Upload,
+      title: "회원가입/로그인",
+      description: "안전한 인증 시스템으로 계정을 생성하고 로그인",
+      icon: UserCheck,
     },
     {
       number: "02",
-      title: "AI 분석",
-      description: "OpenAI가 자동으로 데이터를 분석하고 패턴 발견",
-      icon: Brain,
+      title: "데이터 업로드",
+      description: "어드민이 엑셀 파일을 업로드하고 컬럼을 선택",
+      icon: Upload,
     },
     {
       number: "03",
-      title: "시각화",
-      description: "직관적인 차트와 그래프로 결과 확인",
-      icon: TrendingUp,
+      title: "자동 시각화",
+      description: "선택된 데이터로 자동으로 차트와 그래프 생성",
+      icon: BarChart3,
     },
     {
       number: "04",
-      title: "알림 수신",
-      description: "중요한 인사이트를 SMS로 즉시 전달",
-      icon: Bell,
+      title: "커뮤니티 참여",
+      description: "게시물 조회, 댓글 작성으로 데이터 인사이트 공유",
+      icon: MessageSquare,
     },
   ]
 

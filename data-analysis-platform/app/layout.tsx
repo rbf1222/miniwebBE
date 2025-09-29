@@ -9,7 +9,7 @@ import "./globals.css"
 
 export const metadata: Metadata = {
   title: "AutoViz Dock",
-  description: "Created with v0",
+  description: "For AutoVisualize Data",
   generator: "v0.app",
 }
 

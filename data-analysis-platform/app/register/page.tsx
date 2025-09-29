@@ -50,6 +50,15 @@ export default function RegisterPage() {
       return
     }
 
+    if (formData.phone.length !== 11) {
+      toast({
+        title: "오류",
+        description: "전화번호는 정확히 11자여야 합니다.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsLoading(true)
     try {
       const result = await apiClient.register(formData)
@@ -290,20 +299,20 @@ export default function RegisterPage() {
               {[
                 {
                   icon: Shield,
-                  title: "안전한 데이터 보호",
-                  description: "엔터프라이즈급 보안으로 데이터를 안전하게 보호합니다",
+                  title: "어드민 관리 시스템",
+                  description: "엑셀 업로드, 자동 시각화, 게시물 관리 및 사용자 뷰 전환",
                   color: "from-blue-500 to-blue-600",
                 },
                 {
                   icon: Brain,
-                  title: "AI 기반 분석",
-                  description: "OpenAI 기반 분석으로 즉시 인사이트를 얻으세요",
+                  title: "커뮤니티 플랫폼",
+                  description: "게시물 조회, 검색, 댓글 작성 및 관리 기능",
                   color: "from-purple-500 to-purple-600",
                 },
                 {
                   icon: TrendingUp,
-                  title: "실시간 시각화",
-                  description: "직관적인 차트와 그래프로 데이터를 시각화합니다",
+                  title: "SMS 알림 서비스",
+                  description: "새로운 게시물 등록 시 실시간 SMS 알림 발송",
                   color: "from-green-500 to-green-600",
                 },
               ].map((benefit, index) => (
@@ -440,16 +449,49 @@ export default function RegisterPage() {
                     transition={{ delay: 0.9 }}
                   >
                     <Label htmlFor="phone" className="text-sm font-medium">
-                      전화번호
+                      전화번호 (11자)
                     </Label>
                     <Input
                       id="phone"
                       type="tel"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(e) => {
+                        const numericValue = e.target.value.replace(/[^0-9]/g, "")
+                        setFormData({ ...formData, phone: numericValue })
+                      }}
                       className="glass-effect border-0 focus:ring-2 focus:ring-primary/50 transition-all duration-300"
                       required
+                      maxLength={11}
+                      minLength={11}
+                      pattern="[0-9]{11}"
+                      inputMode="numeric"
+                      placeholder="01012345678"
                     />
+                    {formData.phone && (
+                      <motion.div
+                        className="space-y-2"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="flex justify-between text-xs">
+                          <span>전화번호 길이</span>
+                          <span className={formData.phone.length === 11 ? "text-green-500" : "text-red-500"}>
+                            {formData.phone.length}/11
+                          </span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                          <motion.div
+                            className={`h-2 rounded-full ${
+                              formData.phone.length === 11 ? "bg-green-500" : "bg-red-500"
+                            }`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${Math.min((formData.phone.length / 11) * 100, 100)}%` }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                          />
+                        </div>
+                      </motion.div>
+                    )}
                   </motion.div>
 
                   <motion.div
