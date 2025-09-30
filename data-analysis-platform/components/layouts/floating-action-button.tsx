@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Plus, Upload, Languages, MessageSquare } from "lucide-react"
+// UserCog 아이콘을 새로 import 합니다.
+import { Plus, Upload, Languages, MessageSquare, UserCog } from "lucide-react"
 import Link from "next/link"
 import { useAuthStore } from "@/lib/auth"
 import { cn } from "@/lib/utils"
@@ -14,6 +15,7 @@ export function FloatingActionButton() {
   if (!user) return null
 
   const actions = [
+    // --- 기존 코드 시작 ---
     ...(user.role === "admin"
       ? [
           {
@@ -24,6 +26,18 @@ export function FloatingActionButton() {
           },
         ]
       : []),
+    // --- 기존 코드 끝 ---
+
+    // ▼▼▼ [추가된 코드] 개인정보 수정 버튼 객체 ▼▼▼
+    {
+      icon: UserCog, // 개인정보 수정을 나타내는 아이콘
+      label: "개인정보 수정", // 버튼에 표시될 텍스트
+      href: "/profile/edit", // 클릭 시 이동할 페이지 경로
+      color: "bg-orange-500", // 버튼 색상
+    },
+    // ▲▲▲ [추가된 코드] 개인정보 수정 버튼 객체 ▲▲▲
+
+    // --- 기존 코드 시작 ---
     {
       icon: Languages,
       label: "번역",
@@ -36,6 +50,7 @@ export function FloatingActionButton() {
       href: "/posts",
       color: "bg-green-500",
     },
+    // --- 기존 코드 끝 ---
   ]
 
   return (

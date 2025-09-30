@@ -35,25 +35,26 @@ const buttonVariants = cva(
   },
 )
 
-function Button({
-  className,
-  variant,
-  size,
-  asChild = false,
-  ...props
-}: React.ComponentProps<'button'> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
-  const Comp = asChild ? Slot : 'button'
-
-  return (
-    <Comp
-      data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
-  )
+// ▼▼▼ [수정 1] props 타입을 명확하게 하기 위해 interface로 추출합니다. ▼▼▼
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
 }
+
+// ▼▼▼ [수정 2] function Button(...)을 React.forwardRef로 감싸는 구조로 변경합니다. ▼▼▼
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button'
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref} // ▼▼▼ [수정 3] 받아온 ref를 실제 DOM 요소에 전달합니다. ▼▼▼
+        {...props}
+      />
+    )
+  },
+)
+Button.displayName = 'Button' // 디버깅 시 컴포넌트 이름을 표시하기 위함입니다.
 
 export { Button, buttonVariants }
