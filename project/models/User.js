@@ -23,3 +23,10 @@ export async function findById(id) {
     const [rows] = await db.query('SELECT id, username, phone, role, created_at FROM users WHERE id = ?', [id]);
     return rows[0];
 }
+
+export async function updatePassword(userId, newHash) {
+    await db.query(
+        "UPDATE users SET password_hash = ? WHERE id = ?",
+        [newHash, userId]
+    );
+}
