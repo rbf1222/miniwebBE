@@ -1,13 +1,14 @@
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, User, Calendar } from "lucide-react"
 import Link from "next/link"
+import { useTranslation } from "react-i18next";
 
-// 이 인터페이스는 백엔드에서 받는 데이터 구조를 정확하게 반영합니다.
 interface Post {
   id: string;
   title: string;
   username:string;
   created_at: string;
+  translatedTitle?: string;
 }
 
 interface PostCardProps {
@@ -15,12 +16,15 @@ interface PostCardProps {
 }
 
 export function PostCard({ post }: PostCardProps) {
+  const { t } = useTranslation();
   // 날짜 문자열을 처리하는 함수를 개선하여 'Invalid Date' 오류를 방지합니다.
   const formatDate = (dateString: string) => {
     // 유효한 날짜 문자열인지 확인
     if (!dateString || isNaN(new Date(dateString).getTime())) {
-      return "날짜 정보 없음"; // 유효하지 않은 경우 대체 텍스트 반환
+      return t("noDate"); // 유효하지 않은 경우 대체 텍스트 반환
     }
+
+    
 
     // 유효한 경우, 'YYYY년 M월 D일' 형식으로 포맷
     const date = new Date(dateString);
@@ -29,7 +33,7 @@ export function PostCard({ post }: PostCardProps) {
     const day = date.getDate();
     const hour = date.getHours();
     const min = date.getMinutes();
-    return `${year}년 ${month}월 ${day}일 ${hour}시 ${min}분`;
+     return `${year}${t("year")} ${month}${t("month")} ${day}${t("day")} ${hour}${t("hour")} ${min}${t("minute")}`;
   };
 
   return (
@@ -39,7 +43,7 @@ export function PostCard({ post }: PostCardProps) {
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">{post.title}</CardTitle>
+              <CardTitle className="text-lg">{post.translatedTitle || post.title}</CardTitle>
             </div>
           </div>
           <CardDescription className="flex items-center gap-4 text-sm mt-2">

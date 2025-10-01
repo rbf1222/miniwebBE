@@ -1,34 +1,45 @@
 "use client"
 
-import type React from "react"
-import { useEffect } from "react"
+import React from "react"
+
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
-} from "@/components/ui/dropdown-menu"
-// ▼▼▼ [수정 1] AvatarImage를 import 목록에 추가합니다. ▼▼▼
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuthStore } from "@/lib/auth"
 import { LogOut, User, Settings } from "lucide-react"
-import { FloatingActionButton } from "./floating-action-button" 
+import { translateText } from "../../src/lib/api"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useTranslation } from "react-i18next"
+import { FloatingActionButton } from "./floating-action-button"
+
 
 interface AppLayoutProps {
   children: React.ReactNode
+  onChange: (value: string) => void;
+  translateText?: (text: string, targetLang: string) => Promise<string>; // 추가
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout({ children, onChange, translateText }: AppLayoutProps) {
   const { user, logout, initialize } = useAuthStore()
   const router = useRouter()
+  const { t, i18n, ready } = useTranslation()
+
+  const [language, setLanguage] = useState("ko") // 기본값 한국어
 
   useEffect(() => {
-    initialize()
-  }, [initialize])
+    console.log("현재 language 상태:", language);
+  }, [language]);
+
+  useEffect(() => {
+    initialize();
+
+    if (i18n?.changeLanguage && ready) {
+      i18n.changeLanguage(language);
+    }
+  }, [i18n, ready, initialize, language]);
 
   const handleLogout = () => {
     try {
@@ -49,23 +60,44 @@ export function AppLayout({ children }: AppLayoutProps) {
           <div className="flex items-center gap-3">
             <nav className="hidden sm:flex items-center gap-4">
               <Button variant="ghost" asChild>
-                <Link href="/posts">게시물</Link>
+                <Link href="/posts">{t("posts")}</Link>
               </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/translate">번역</Link>
-              </Button>
+
+              <Select onValueChange={(lang) => {
+                console.log(lang);
+
+                setLanguage(lang);
+                onChange(lang)
+
+                if (i18n && ready) {
+                  i18n.changeLanguage(lang);
+                }
+              }} >
+                <SelectTrigger className="w-24 h-9 px-2 py-1 text-sm bg-transparent border-none shadow-none focus:ring-0 focus:outline-none transition-colors duration-200 hover:bg-accent hover:text-accent-foreground cursor-pointer rounded-md">
+                  <SelectValue placeholder="한국어" />
+                </SelectTrigger>
+                <SelectContent className="w-24">
+                  <SelectItem className="w-24" value="ko">한국어</SelectItem>
+                  <SelectItem className="w-24" value="en">English</SelectItem>
+                  <SelectItem className="w-24" value="ja">日本語</SelectItem>
+                </SelectContent>
+              </Select>
+
+
               {user?.role === "admin" && (
                 <Button variant="ghost" asChild>
-                  <Link href="/admin">관리자</Link>
+                  <Link href="/admin">{t("admin")}</Link>
                 </Button>
               )}
             </nav>
 
+            {/* ✅ 상단바에 눈에 띄는 로그아웃 버튼 추가 */}
             <Button variant="secondary" onClick={handleLogout} className="hidden md:inline-flex">
               <LogOut className="h-4 w-4 mr-2" />
-              로그아웃
+              {t("logout")}
             </Button>
 
+            {/* 아바타 드롭다운 (모바일/보조 용) */}
             <div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -82,7 +114,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     <User className="h-4 w-4 mr-2" />
                     <span className="font-semibold">{user?.username}</span>
                   </DropdownMenuItem>
-                  
+
                   <DropdownMenuSeparator />
 
                   <DropdownMenuItem asChild className="cursor-pointer">
@@ -91,10 +123,13 @@ export function AppLayout({ children }: AppLayoutProps) {
                       <span>프로필 수정</span>
                     </Link>
                   </DropdownMenuItem>
-
+                  <DropdownMenuItem className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span>{user?.username}</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 md:hidden">
                     <LogOut className="h-4 w-4" />
-                    <span>로그아웃</span>
+                    <span>{t("logout")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -102,11 +137,10 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
         </div>
       </header>
-      
+
       <main className="flex-grow">{children}</main>
 
       <FloatingActionButton />
-
     </div>
   )
 }

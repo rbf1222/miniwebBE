@@ -14,8 +14,10 @@ import { useToast } from "@/hooks/use-toast"
 import { apiClient } from "@/lib/api"
 import { CheckCircle, Shield, Sparkles, BarChart3, ArrowLeft, Brain, TrendingUp } from "lucide-react"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 export default function RegisterPage() {
+  const { t, i18n, ready } = useTranslation()
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -43,8 +45,8 @@ export default function RegisterPage() {
 
     if (formData.password.length < 8) {
       toast({
-        title: "오류",
-        description: "비밀번호는 8자 이상이어야 합니다.",
+        title: t("error"),
+        description: t("validation.password_length"),
         variant: "destructive",
       })
       return
@@ -52,8 +54,8 @@ export default function RegisterPage() {
 
     if (formData.phone.length !== 11) {
       toast({
-        title: "오류",
-        description: "전화번호는 정확히 11자여야 합니다.",
+        title: t("error"),
+        description: t("validation.phone_length"),
         variant: "destructive",
       })
       return
@@ -64,13 +66,13 @@ export default function RegisterPage() {
       const result = await apiClient.register(formData)
       setSuccess({ userId: result.userId })
       toast({
-        title: "성공",
+        title: t("success"),
         description: result.message,
       })
     } catch (error) {
       toast({
-        title: "오류",
-        description: error instanceof Error ? error.message : "회원가입에 실패했습니다.",
+        title: t("error"),
+        description: error instanceof Error ? error.message : t("register_failed"),
         variant: "destructive",
       })
     } finally {
@@ -150,10 +152,10 @@ export default function RegisterPage() {
                   </motion.div>
                 </motion.div>
                 <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent mb-2">
-                  회원가입 완료!
+                  {t("register_success")}
                 </CardTitle>
                 <CardDescription className="text-lg text-muted-foreground">
-                  사용자 ID: <span className="font-mono font-semibold text-foreground">{success.userId}</span>
+                  {t("user_id")}: <span className="font-mono font-semibold text-foreground">{success.userId}</span>
                 </CardDescription>
               </CardHeader>
               <CardContent className="relative z-10">
@@ -170,7 +172,7 @@ export default function RegisterPage() {
                       >
                         <Sparkles className="w-5 h-5 mr-2" />
                       </motion.div>
-                      로그인하기
+                      {t("go_login")}
                     </Link>
                   </Button>
                 </motion.div>
@@ -249,18 +251,36 @@ export default function RegisterPage() {
               <span className="font-bold text-xl text-foreground">AutoViz Dock</span>
             </motion.div>
 
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 400, damping: 10 }}
-            >
-              <Button variant="ghost" asChild>
-                <Link href="/" className="flex items-center gap-2">
-                  <ArrowLeft className="w-4 h-4" />
-                  홈으로
-                </Link>
-              </Button>
-            </motion.div>
+             {/* 우측: 홈으로 + 언어선택 */}
+            <div className="flex items-center gap-3">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              >
+                <Button variant="ghost" asChild>
+                  <Link href="/" className="flex items-center gap-2">
+                    <ArrowLeft className="w-4 h-4" />
+                    {t("go_home")}
+                  </Link>
+                </Button>
+              </motion.div>
+
+              {/* ✅ 언어 선택 드롭다운 추가 */}
+              {ready && (
+                <select
+                  onChange={(e) => i18n.changeLanguage(e.target.value)}
+                  aria-label="언어 선택"
+                  className="ml-2 rounded-md border border-gray-300 bg-white py-1 px-2 text-sm text-gray-700 shadow-sm 
+                             focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                  defaultValue={i18n.language || "ko"}
+                >
+                  <option value="ko">한국어</option>
+                  <option value="en">English</option>
+                  <option value="ja">日本語</option>
+                </select>
+              )}
+            </div>
           </div>
         </div>
       </motion.nav>
@@ -280,9 +300,9 @@ export default function RegisterPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
-                <span className="text-foreground">AI 데이터 분석의</span>{" "}
+                <span className="text-foreground">{t("aiDataAnalysis")}</span>{" "}
                 <span className="bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
-                  새로운 시작
+                  {t("newBeginning")}
                 </span>
               </motion.h1>
               <motion.p
@@ -291,7 +311,7 @@ export default function RegisterPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
-                엑셀 데이터를 업로드하고 AI가 분석한 인사이트를 팀과 공유하세요
+                {t("excelInsight")}
               </motion.p>
             </div>
 
@@ -299,20 +319,20 @@ export default function RegisterPage() {
               {[
                 {
                   icon: Shield,
-                  title: "어드민 관리 시스템",
-                  description: "엑셀 업로드, 자동 시각화, 게시물 관리 및 사용자 뷰 전환",
+                  title: t("adminSystem"),
+                  description: t("excelFeature"),
                   color: "from-blue-500 to-blue-600",
                 },
                 {
                   icon: Brain,
-                  title: "커뮤니티 플랫폼",
-                  description: "게시물 조회, 검색, 댓글 작성 및 관리 기능",
+                  title: t("communityPlatform"),
+                  description: t("communityFeature"),
                   color: "from-purple-500 to-purple-600",
                 },
                 {
                   icon: TrendingUp,
-                  title: "SMS 알림 서비스",
-                  description: "새로운 게시물 등록 시 실시간 SMS 알림 발송",
+                  title: t("smsService"),
+                  description: t("smsFeature"),
                   color: "from-green-500 to-green-600",
                 },
               ].map((benefit, index) => (
@@ -358,9 +378,9 @@ export default function RegisterPage() {
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
                 >
-                  <CardTitle className="text-3xl font-bold mb-2">회원가입</CardTitle>
+                  <CardTitle className="text-3xl font-bold mb-2">{t("signUp")}</CardTitle>
                   <CardDescription className="text-base text-muted-foreground">
-                    새 계정을 만들어 시작하세요
+                    {t("register_subtitle")}
                   </CardDescription>
                 </motion.div>
               </CardHeader>
@@ -373,7 +393,7 @@ export default function RegisterPage() {
                     transition={{ delay: 0.7 }}
                   >
                     <Label htmlFor="username" className="text-sm font-medium">
-                      사용자명
+                      {t("username")}
                     </Label>
                     <Input
                       id="username"
@@ -392,7 +412,7 @@ export default function RegisterPage() {
                     transition={{ delay: 0.8 }}
                   >
                     <Label htmlFor="password" className="text-sm font-medium">
-                      비밀번호 (최소 8자)
+                      {t("password")} {t("passwordMinLength")}
                     </Label>
                     <Input
                       id="password"
@@ -411,7 +431,7 @@ export default function RegisterPage() {
                         transition={{ duration: 0.3 }}
                       >
                         <div className="flex justify-between text-xs">
-                          <span>비밀번호 강도</span>
+                          <span>{t("passwordStrength")}</span>
                           <span
                             className={
                               passwordStrength >= 75
@@ -421,7 +441,7 @@ export default function RegisterPage() {
                                   : "text-red-500"
                             }
                           >
-                            {passwordStrength >= 75 ? "강함" : passwordStrength >= 50 ? "보통" : "약함"}
+                            {passwordStrength >= 75 ? t("strengthStrong") : passwordStrength >= 50 ? t("strengthMedium") : t("strengthWeak")}
                           </span>
                         </div>
                         <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
@@ -449,7 +469,7 @@ export default function RegisterPage() {
                     transition={{ delay: 0.9 }}
                   >
                     <Label htmlFor="phone" className="text-sm font-medium">
-                      전화번호 (11자)
+                      {t("phone")} ({t("phoneLength")})
                     </Label>
                     <Input
                       id="phone"
@@ -475,7 +495,7 @@ export default function RegisterPage() {
                         transition={{ duration: 0.3 }}
                       >
                         <div className="flex justify-between text-xs">
-                          <span>전화번호 길이</span>
+                          <span>{t("phoneNumberLength")}</span>
                           <span className={formData.phone.length === 11 ? "text-green-500" : "text-red-500"}>
                             {formData.phone.length}/11
                           </span>
@@ -501,7 +521,7 @@ export default function RegisterPage() {
                     transition={{ delay: 1.0 }}
                   >
                     <Label htmlFor="role" className="text-sm font-medium">
-                      역할
+                     {t("role")}
                     </Label>
                     <Select
                       value={formData.role}
@@ -511,8 +531,8 @@ export default function RegisterPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="glass-effect border-0">
-                        <SelectItem value="user">사용자</SelectItem>
-                        <SelectItem value="admin">관리자</SelectItem>
+                        <SelectItem value="user">{t("role_user")}</SelectItem>
+                        <SelectItem value="admin">{t("role_admin")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </motion.div>
@@ -543,7 +563,7 @@ export default function RegisterPage() {
                           <Sparkles className="w-5 h-5 mr-2" />
                         </motion.div>
                       )}
-                      {isLoading ? "처리 중..." : "회원가입"}
+                       {isLoading ? t("loading") : t("register")}
                     </Button>
                   </motion.div>
                 </form>
@@ -554,9 +574,9 @@ export default function RegisterPage() {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.2 }}
                 >
-                  이미 계정이 있으신가요?{" "}
+                  {t("already_have_account")}{" "}
                   <Link href="/login" className="text-primary hover:text-chart-2 font-medium transition-colors">
-                    로그인
+                    {t("login")}
                   </Link>
                 </motion.div>
               </CardContent>

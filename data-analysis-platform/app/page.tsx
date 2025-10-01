@@ -5,6 +5,9 @@ import { motion } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next"
+import '../src/lib/i18n';
 
 import {
   Upload,
@@ -21,9 +24,15 @@ import {
   UserCheck,
 } from "lucide-react"
 
+
 /* ----------------------------- Navigation ----------------------------- */
 
+
 function Navigation() {
+  const { t, i18n, ready } = useTranslation();
+
+  if (!ready) return null;
+
   return (
     <motion.nav
       initial={{ y: -100, opacity: 0 }}
@@ -32,7 +41,10 @@ function Navigation() {
       className="fixed top-0 left-0 right-0 z-50 glass-effect"
     >
       <div className="container mx-auto px-6 py-4">
+        {/* 핵심: justify-between을 사용하는 flex 컨테이너 */}
         <div className="flex items-center justify-between">
+          
+          {/* 좌측: 로고 영역 */}
           <motion.div
             className="flex items-center gap-2"
             whileHover={{ scale: 1.05 }}
@@ -44,25 +56,44 @@ function Navigation() {
             <span className="font-bold text-xl text-foreground">AutoViz Dock</span>
           </motion.div>
 
+          {/* 우측: 버튼 + 언어 선택 */}
           <div className="flex items-center gap-3">
             <Button variant="ghost" asChild>
-              <Link href="/login">로그인</Link>
+              <Link href="/login">{t("Login")}</Link>
             </Button>
+
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button className="gradient-primary text-white border-0" asChild>
-                <Link href="/register">시작하기</Link>
+                <Link href="/register">{t("Get Started")}</Link>
               </Button>
             </motion.div>
+
+            {/* 언어 선택 드롭다운 */}
+            <select
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              aria-label="언어 선택"
+              className="ml-2 rounded-md border border-gray-300 bg-white py-1 px-2 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+              defaultValue={i18n.language || "ko"}
+            >
+              <option value="ko">한국어</option>
+              <option value="en">English</option>
+              <option value="ja">日本語</option>
+            </select>
           </div>
+
         </div>
       </div>
     </motion.nav>
-  )
+  );
 }
+
 
 /* ----------------------------- Hero Section ----------------------------- */
 
 function HeroSection() {
+    const { t, ready } = useTranslation();
+
+  if (!ready) return null;
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-background via-accent/20 to-background" />
@@ -134,7 +165,8 @@ function HeroSection() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.5 }}
             >
-              AI 기반
+              {/* AI 기반 */}
+              {t("AI-based")}
             </motion.span>{" "}
             <motion.span
               className="bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent inline-block"
@@ -142,7 +174,8 @@ function HeroSection() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.7 }}
             >
-              데이터 분석
+              {/* 데이터 분석 */}
+              {t("Data Analytics")}
             </motion.span>{" "}
             <motion.span
               className="text-foreground inline-block"
@@ -150,7 +183,8 @@ function HeroSection() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.9 }}
             >
-              플랫폼
+              {/* 플랫폼 */}
+              {t("Platform")}
             </motion.span>
           </motion.h1>
 
@@ -160,9 +194,11 @@ function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.1 }}
           >
-            엑셀 업로드부터 AI 분석, 시각화, SMS 알림까지
+            {/* 엑셀 업로드부터 AI 분석, 시각화, SMS 알림까지 */}
+            {t("startFree")}
             <br className="hidden md:block" />
-            모든 데이터 워크플로우를 하나의 플랫폼에서
+            {/* 모든 데이터 워크플로우를 하나의 플랫폼에서 */}
+            {t("fromOne")}
           </motion.p>
 
           <motion.div
@@ -184,7 +220,8 @@ function HeroSection() {
                   >
                     <Sparkles className="w-5 h-5 mr-2" />
                   </motion.div>
-                  무료로 시작하기
+                  {/* 무료로 시작하기 */}
+                  {t("Start for Free")}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
@@ -196,19 +233,22 @@ function HeroSection() {
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
               <Button size="lg" variant="outline" className="px-8 py-6 text-lg glass-effect bg-transparent" asChild>
-                <Link href="/login">로그인</Link>
+                <Link href="/login">
+                {/* 로그인 */}
+                  {t("Login")}
+                  </Link>
               </Button>
             </motion.div>
           </motion.div>
 
           <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
             {[
-              { number: "10K+", label: "활성 사용자" },
-              { number: "1M+", label: "분석된 데이터" },
-              { number: "99.9%", label: "업타임" },
+              { number: "10K+", label: t("Active Users") },
+              { number: "1M+", label: t("Data Analyzed") },
+              { number: "99.9%", label: t("Uptime") },
             ].map((stat, i) => (
               <motion.div
-                key={stat.label}
+                key={i} // key 안정화
                 initial={{ opacity: 0, y: 30, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{
@@ -247,29 +287,32 @@ function HeroSection() {
 /* ----------------------------- Features Section ----------------------------- */
 
 function FeaturesSection() {
+    const { t, ready } = useTranslation();
+
+  if (!ready) return null;
   const features = [
     {
       icon: Settings,
-      title: "어드민 관리",
-      description: "엑셀 업로드로 자동 시각화, 게시글 관리, 사용자/어드민 뷰 전환이 가능합니다.",
+      title:  t("adminSystem"),
+      description: t("automaticallyVisualize"),
       color: "from-blue-500 to-blue-600",
     },
     {
       icon: Users,
-      title: "사용자 시스템",
-      description: "게시물 조회, 검색, 댓글 작성 및 관리 기능을 제공합니다.",
+      title: t("userSystem"),
+      description: t("userSystemDesc"),
       color: "from-green-500 to-green-600",
     },
     {
       icon: UserCheck,
-      title: "회원 관리",
-      description: "안전한 회원가입, 로그인, JWT 인증, 아이디 찾기 기능을 지원합니다.",
+      title: t("memberManagement"),
+      description: t("memberManagementDec"),
       color: "from-purple-500 to-purple-600",
     },
     {
       icon: Bell,
-      title: "SMS 알림",
-      description: "새로운 게시물 발행 시 자동으로 SMS 알림을 전송합니다.",
+      title: t("smsNotification"),
+      description: t("smsNotificationDesc"),
       color: "from-orange-500 to-orange-600",
     },
   ]
@@ -284,10 +327,8 @@ function FeaturesSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-balance">강력한 기능들</h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
-            데이터 분석 워크플로우를 혁신하는 핵심 기능들을 만나보세요
-          </p>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-balance"> {t("powerfulFeature")}</h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">{t("DiscoverTheKey")}</p>
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -337,29 +378,32 @@ function FeaturesSection() {
 /* ----------------------------- Process Section ----------------------------- */
 
 function ProcessSection() {
+      const { t, ready } = useTranslation();
+
+  if (!ready) return null;
   const steps = [
     {
       number: "01",
-      title: "회원가입/로그인",
-      description: "안전한 인증 시스템으로 계정을 생성하고 로그인",
+      title: t("feature01_title"),
+      description: t("feature01_desc"),
       icon: UserCheck,
     },
     {
       number: "02",
-      title: "데이터 업로드",
-      description: "어드민이 엑셀 파일을 업로드하고 컬럼을 선택",
+      title: t("feature02_title"),
+      description: t("feature02_desc"),
       icon: Upload,
     },
     {
       number: "03",
-      title: "자동 시각화",
-      description: "선택된 데이터로 자동으로 차트와 그래프 생성",
+      title: t("feature03_title"),
+      description: t("feature03_desc"),
       icon: BarChart3,
     },
     {
       number: "04",
-      title: "커뮤니티 참여",
-      description: "게시물 조회, 댓글 작성으로 데이터 인사이트 공유",
+      title: t("feature04_title"),
+      description: t("feature04_desc"),
       icon: MessageSquare,
     },
   ]
@@ -374,9 +418,9 @@ function ProcessSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-balance">간단한 4단계 프로세스</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-balance">{t("process_heading")}</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
-            복잡한 데이터 분석을 누구나 쉽게 할 수 있도록 설계했습니다
+            {t("process_subheading")}
           </p>
         </motion.div>
 
@@ -448,6 +492,9 @@ function ProcessSection() {
 /* ----------------------------- CTA Section ----------------------------- */
 
 function CTASection() {
+    const { t, ready } = useTranslation();
+
+  if (!ready) return null;
   return (
     <section className="py-24 bg-accent/30 relative overflow-hidden">
       <motion.div
@@ -481,12 +528,12 @@ function CTASection() {
             }}
             transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY }}
           >
-            지금 바로 시작하세요
+            {t("cta_button")}
           </motion.h2>
           <p className="text-xl text-muted-foreground mb-8 text-pretty">
-            복잡한 데이터 분석을 간단하게, AI의 힘으로 더 스마트하게
+            {t("cta_main")}
             <br className="hidden md:block" />
-            AutoViz Dock과 함께 데이터의 진정한 가치를 발견하세요
+            {t("cta_sub")}
           </p>
 
           <motion.div
@@ -519,7 +566,7 @@ function CTASection() {
                   >
                     <Zap className="w-5 h-5 mr-2" />
                   </motion.div>
-                  무료로 시작하기
+                  {t("Start for Free")}
                 </Link>
               </Button>
             </motion.div>
@@ -533,9 +580,9 @@ function CTASection() {
             transition={{ duration: 0.8, delay: 0.5 }}
           >
             {[
-              { icon: Shield, text: "보안 인증" },
-              { icon: Clock, text: "24/7 지원" },
-              { icon: Sparkles, text: "무료 체험" },
+              { icon: Shield, text: t("badge_security") },
+              { icon: Clock, text:  t("badge_support") },
+              { icon: Sparkles, text:  t("badge_trial") },
             ].map((item, i) => (
               <motion.div
                 key={item.text}

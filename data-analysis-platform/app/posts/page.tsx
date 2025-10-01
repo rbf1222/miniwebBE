@@ -10,27 +10,36 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
 import { Search, Grid, List, FileText } from "lucide-react"
-
-// 이 인터페이스는 백엔드에서 받는 데이터 구조를 정의합니다.
-// 작성자(author)와 생성일(createdAt) 필드가 포함되어 있습니다.
+import { useTranslation } from "react-i18next"
 interface Post {
   id: string;
   title: string;
-  username:string;
+  username: string;
   created_at: string;
+  translatedTitle?: string;
 }
 
+interface PostsPageProps {
+  language: string;
+}
 
-export default function PostsPage() {
+export default function PostsPage({ language: initialLanguage }: PostsPageProps) {
+
   const [posts, setPosts] = useState<Post[]>([])
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "title">("newest")
   const [viewMode, setViewMode] = useState<"card" | "table">("card")
   const [isLoading, setIsLoading] = useState(true)
+  const [language, setLanguage] = useState(initialLanguage || 'ko');
+
+  console.log("받은 language props:", language);
+
+  const { t, i18n, ready } = useTranslation()
 
   // 서버에서 게시물 데이터를 불러오는 부분입니다.
   useEffect(() => {
+
     setIsLoading(true)
     fetch("http://192.168.0.165:5000/api/posts")
       .then((res) => {
@@ -46,6 +55,58 @@ export default function PostsPage() {
         setIsLoading(false)
       })
   }, [])
+
+  //i18n language 실행
+  useEffect(() => {
+    if (i18n && typeof i18n.changeLanguage === "function" && ready) {
+      i18n.changeLanguage(language);
+    }
+  }, [language, i18n, ready]);
+
+  // 언어 바뀔 때 번역 실행
+  useEffect(() => {
+    if (!posts.length) return;
+    let isMounted = true;
+
+    async function translateText(texts: string[], targetLang: string) {
+      const res = await fetch("http://localhost:5000/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ texts, targetLang }),
+      })
+      const data = await res.json()
+      console.log("백엔드 번역 API 응답:", data)
+      return data.translations
+    }
+
+
+    async function translateAll() {
+      const texts = posts.map((post) => {
+        return post.title
+      })
+      const result = await translateText(texts, language);
+      result.map((title: string, idx: number) => {
+        const newPosts = [...posts];
+        newPosts[idx].title = title;
+        setPosts(newPosts);
+      })
+
+      // const translatedPosts = await Promise.all(
+
+      //   // posts.map(async (post) => {
+      //   //   const translatedTitle = await translateText(post.title, language)
+      //   //   return { ...post, translatedTitle }
+      //   // })
+      // )
+      // if (isMounted) setPosts(translatedPosts)
+    }
+
+
+    translateAll()
+
+    return () => { isMounted = false } // cleanup
+  }, [posts.length, language])
+
 
   // 검색어와 정렬 순서에 따라 게시물을 필터링하고 정렬합니다.
   useEffect(() => {
@@ -71,10 +132,11 @@ export default function PostsPage() {
     setFilteredPosts(filtered)
   }, [posts, searchTerm, sortBy])
 
+
   if (isLoading) {
     return (
       <ProtectedRoute>
-        <AppLayout>
+        <AppLayout onChange={() => { }}>
           <div className="container mx-auto px-4 py-8">
             <div className="space-y-6">
               <div className="h-8 bg-muted rounded animate-pulse" />
@@ -92,12 +154,14 @@ export default function PostsPage() {
 
   return (
     <ProtectedRoute>
-      <AppLayout>
+      <AppLayout onChange={(translatedText) => {
+        setLanguage(translatedText);
+      }}>
         <div className="container mx-auto px-4 py-8 space-y-6">
           {/* Header */}
           <div>
-            <h1 className="text-3xl font-bold">게시물</h1>
-            <p className="text-muted-foreground">업로드된 데이터와 분석 결과를 확인하세요</p>
+            <h1 className="text-3xl font-bold">{t("posts")}</h1>
+            <p className="text-muted-foreground">{t("checkUploadedData")}</p>
           </div>
 
           {/* Controls */}
@@ -106,7 +170,7 @@ export default function PostsPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="제목이나 작성자로 검색..."
+                  placeholder={t("searchByTitleOrAuthor")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -118,9 +182,9 @@ export default function PostsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">최신순</SelectItem>
-                  <SelectItem value="oldest">오래된순</SelectItem>
-                  <SelectItem value="title">제목순</SelectItem>
+                  <SelectItem value="newest">{t("sortNewest")}</SelectItem>
+                  <SelectItem value="oldest">{t("sortOldest")}</SelectItem>
+                  <SelectItem value="title">{t("sortByTitle")}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -140,9 +204,9 @@ export default function PostsPage() {
             <Card>
               <CardContent className="py-16 text-center">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <CardTitle className="mb-2">{searchTerm ? "검색 결과가 없습니다" : "게시물이 없습니다"}</CardTitle>
+                <CardTitle className="mb-2">{searchTerm ? t("noSearchResults") : t("noPosts")}</CardTitle>
                 <CardDescription>
-                  {searchTerm ? "다른 검색어를 시도해보세요" : "관리자가 데이터를 업로드하면 여기에 표시됩니다"}
+                  {searchTerm ? t("tryAnotherKeyword") : t("adminUploadNotice")}
                 </CardDescription>
               </CardContent>
             </Card>
@@ -162,4 +226,3 @@ export default function PostsPage() {
     </ProtectedRoute>
   )
 }
-
