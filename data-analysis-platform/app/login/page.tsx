@@ -14,6 +14,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { LogIn, Sparkles, User, Lock, ArrowLeft } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import '../../src/lib/i18n';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -71,7 +72,7 @@ export default function LoginPage() {
               </Button>
             </motion.div>
 
-            {/* ✅ 언어 선택 드롭다운 */}
+            {/* ✅ 언어 선택 드롭다운
             {ready && (
               <select
                 onChange={(e) => i18n.changeLanguage(e.target.value)}
@@ -84,7 +85,7 @@ export default function LoginPage() {
                 <option value="en">English</option>
                 <option value="ja">日本語</option>
               </select>
-            )}
+            )} */}
           </div>
         </div>
       </nav>
