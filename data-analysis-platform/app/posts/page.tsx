@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
 import { Search, Grid, List, FileText } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import '../../src/lib/i18n';
 
 const API_BASE = "http://192.168.0.165:5000"
 

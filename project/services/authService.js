@@ -11,6 +11,13 @@ export async function register({ username, password, phone, role }) {
         err.status = 400;
         throw err;
     }
+
+    const existingByPhone = await User.findByPhone(phone);
+    if (existingByPhone) {
+        const err = new Error("Phone already exists");
+        err.status = 400;
+        throw err;
+    }
     const passwordHash = await hashPassword(password);
     const user = await User.createUser({ username, passwordHash, phone, role });
     return user;
