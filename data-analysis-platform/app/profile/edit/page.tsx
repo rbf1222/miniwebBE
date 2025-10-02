@@ -47,7 +47,7 @@ export default function ProfileEditPage() {
 
     try {
       // ▼▼▼ [수정된 부분] 실제 서버로 PUT 요청을 보냅니다. ▼▼▼
-      const response = await fetch("http://192.168.0.165:5000/api/users/password", {
+      const response = await fetch("http://여기에 IP주소 및 포트 입력/api/users/password", {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

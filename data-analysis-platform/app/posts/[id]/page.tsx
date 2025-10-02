@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Download, FileText, User, Calendar, MessageCircle, BarChart3, Sparkles } from "lucide-react"
 
-const HOST = "http://192.168.0.165:5000"
+const HOST = "http://여기에 IP주소 및 포트 입력"
 
 interface ApiComment {
   id: number | string

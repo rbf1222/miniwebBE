@@ -1,5 +1,7 @@
 // 중요! coolsms-node-sdk는 CommonJS 이므로 .default로 import해야 함
 import coolsmsModule from "coolsms-node-sdk";
+import dotenv from "dotenv";
+dotenv.config();
 const Coolsms = coolsmsModule.default;
 
 const messageService = new Coolsms(

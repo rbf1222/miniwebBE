@@ -13,7 +13,7 @@ import { Upload, FileSpreadsheet, BarChart3, LineChart, PieChart, AreaChart } fr
 import * as XLSX from "xlsx"
 
 // ★ Flask 서버 베이스 URL (환경에 맞게 변경)
-const FLASK_BASE = "http://192.168.0.165:7000"
+const FLASK_BASE = "http://여기에 IP주소 및 포트 입력"
 
 
 interface UploadWizardProps {

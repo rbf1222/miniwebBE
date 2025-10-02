@@ -1,6 +1,6 @@
 import { useAuthStore } from "./auth"
 
-const API_BASE = "http://192.168.0.165:5000/api"
+const API_BASE = "http://여기에 IP주소 및 포트 입력"
 
 interface ApiError {
   message: string
@@ -52,7 +52,7 @@ class ApiClient {
     console.log("TRY")
     const { user } = useAuthStore.getState()
     console.log(user?.token)
-    const res = await fetch("http://192.168.0.165:5000/api/admin/posts", {
+    const res = await fetch("http://여기에 IP주소 및 포트 입력/api/admin/posts", {
       method: "POST",
       body: fd,
       // 인증이 필요하면 Authorization 헤더 추가

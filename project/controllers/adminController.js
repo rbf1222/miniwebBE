@@ -8,6 +8,8 @@ import { fileURLToPath } from 'url';
 import sendSMS from "../services/smsService.js";
 import { spawn } from 'child_process';
 import sendBulkSMS from "../services/smsService.js";
+import { getSmsReceivableUsers } from '../models/User.js';
+import { send } from 'process';
 
 function parseColumns(body) {
     try {
@@ -39,9 +41,17 @@ export async function uploadPost(req, res, next) {
             `${path.parse(f.filename).name}.png`
         );
 
-        // const users = await getSmsReceivableUsers();
-        // const recipients = users.map(u => u.phone.replace(/-/g, ''));
-        // const text = `[Auto Viz Dock] 새 게시글이 등록되었습니다. 지금 확인해보세요! \n바로가기 링크👉 http://localhost:5000/posts 📝`;
+        const users = await getSmsReceivableUsers();
+        const recipients = users.map(u => u.phone.replace(/-/g, ''));
+        const text = `[Auto Viz Dock] 새 게시글이 등록되었습니다. 지금 확인해보세요! \n바로가기 링크👉 http://localhost:5000/posts 📝`;
+
+        await sendBulkSMS({
+            recipients,
+            text,
+        });
+
+        
+
 
         // Python 실행 (spawn으로 안전하게)
         await new Promise((resolve) => {
