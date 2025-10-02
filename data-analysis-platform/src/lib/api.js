@@ -162,6 +162,6 @@ export const createComment = (postId, data) => post(`/posts/${postId}/comments`,
 export const editComment = (id, data) => put(`/comments/${id}`, data)
 export const deleteComment = (id) => del(`/comments/${id}`)
 
-export const translate = (data) => post("/translate", data)
+export const translateText = (data) => post("/translate", data)
 
 export const analyzePost = (data) => post("/admin/analyze-python", data)

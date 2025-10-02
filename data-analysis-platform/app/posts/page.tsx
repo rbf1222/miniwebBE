@@ -29,6 +29,13 @@ export default function PostsPage() {
   const [viewMode, setViewMode] = useState<"card" | "table">("card")
   const [isLoading, setIsLoading] = useState(true)
 
+
+  // 0) 새로고침 시 저장된 언어로 맞춤
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem("lang") : null
+    if (saved && ready && i18n.language !== saved) i18n.changeLanguage(saved)
+  }, [ready, i18n])
+
   // 1) 목록 로드
   useEffect(() => {
     setIsLoading(true)
@@ -50,7 +57,7 @@ export default function PostsPage() {
     if (!ready) return
     if (!posts.length) return
 
-    const target = i18n.language
+    const target = i18n.language || "ko"
     // 한국어면 굳이 번역할 필요 없음 → 원문 유지
     if (!target || target === "ko") {
       setPosts(prev => prev.map(p => ({ ...p, translatedTitle: undefined })))
@@ -96,7 +103,7 @@ export default function PostsPage() {
       switch (sortBy) {
         case "newest": return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         case "oldest": return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        case "title":  return (a.translatedTitle || a.title).localeCompare(b.translatedTitle || b.title)
+        case "title": return (a.translatedTitle || a.title).localeCompare(b.translatedTitle || b.title)
       }
     })
     return list
@@ -105,7 +112,7 @@ export default function PostsPage() {
   if (isLoading) {
     return (
       <ProtectedRoute>
-        <AppLayout>
+        <AppLayout onChange={() => { }}>
           {/* 스켈레톤 동일 */}
           <div className="container mx-auto px-4 py-8">
             <div className="space-y-6">
@@ -120,7 +127,7 @@ export default function PostsPage() {
 
   return (
     <ProtectedRoute>
-      <AppLayout>
+      <AppLayout onChange={() => { }}>
         <div className="container mx-auto px-4 py-8 space-y-6">
           {/* 헤더/컨트롤 UI는 동일 */}
           <Card>

@@ -41,15 +41,17 @@ export function AppLayout({ children, onChange, translateText }: AppLayoutProps)
     }
   }, []); // initialize는 한 번만 실행
 
+  useEffect(() => {
+    if (ready && i18n?.language !== language) {
+      i18n.changeLanguage(language);
+    }
+  }, [language, ready, i18n, initialize]);
+
   // 드롭다운 변경 시 i18next만 변경 (단일 소스)
   const handleLangChange = (lang: string) => {
+    localStorage.setItem("lang", lang);
     if (ready) i18n.changeLanguage(lang)
   }
-  // useEffect(() => {
-  //   if (ready && i18n?.language !== language) {
-  //     i18n.changeLanguage(language);
-  //   }
-  // }, [language, ready, i18n, initialize]);
   // useEffect(() => {
   //   initialize();
 

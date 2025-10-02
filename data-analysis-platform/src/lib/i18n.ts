@@ -13,7 +13,7 @@ i18n
   .use(LanguageDetector) // 브라우저 언어 감지
   .use(initReactI18next)
   .init({
-     resources: {
+    resources: {
       ko: { translation: ko },
       en: { translation: en },
       ja: { translation: ja },
@@ -33,6 +33,14 @@ i18n
       caches: ["localStorage", "cookie"],
     },
   })
+
+if (typeof window !== "undefined") {
+  const saved = localStorage.getItem("lang")
+  if (saved) {
+    // 앱 부팅 직후 저장된 언어로 강제
+    import("i18next").then(({ default: i18n }) => i18n.changeLanguage(saved))
+  }
+}
 
 export default i18n
 
