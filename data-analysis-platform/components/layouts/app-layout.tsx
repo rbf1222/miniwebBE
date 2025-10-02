@@ -33,13 +33,30 @@ export function AppLayout({ children, onChange, translateText }: AppLayoutProps)
     console.log("현재 language 상태:", language);
   }, [language]);
 
+  // i18n 초기화 후 언어 변경 로직을 분리
   useEffect(() => {
     initialize();
-
-    if (i18n?.changeLanguage && ready) {
+    if (ready && i18n?.language !== language) {
       i18n.changeLanguage(language);
     }
-  }, [i18n, ready, initialize, language]);
+  }, []); // initialize는 한 번만 실행
+
+  // 드롭다운 변경 시 i18next만 변경 (단일 소스)
+  const handleLangChange = (lang: string) => {
+    if (ready) i18n.changeLanguage(lang)
+  }
+  // useEffect(() => {
+  //   if (ready && i18n?.language !== language) {
+  //     i18n.changeLanguage(language);
+  //   }
+  // }, [language, ready, i18n, initialize]);
+  // useEffect(() => {
+  //   initialize();
+
+  //   if (i18n?.changeLanguage && ready) {
+  //     i18n.changeLanguage(language);
+  //   }
+  // }, [i18n, ready, initialize, language]);
 
   const handleLogout = () => {
     try {
@@ -63,16 +80,19 @@ export function AppLayout({ children, onChange, translateText }: AppLayoutProps)
                 <Link href="/posts">{t("posts")}</Link>
               </Button>
 
-              <Select onValueChange={(lang) => {
-                console.log(lang);
+              <Select onValueChange={
+                handleLangChange
+                // (lang) => {
+                // console.log(lang);
 
-                setLanguage(lang);
-                onChange(lang)
+                // setLanguage(lang);
+                // onChange(lang)
 
-                if (i18n && ready) {
-                  i18n.changeLanguage(lang);
-                }
-              }} >
+                // if (i18n && ready) {
+                //   i18n.changeLanguage(lang);
+                // }
+                // }
+              } >
                 <SelectTrigger className="w-24 h-9 px-2 py-1 text-sm bg-transparent border-none shadow-none focus:ring-0 focus:outline-none transition-colors duration-200 hover:bg-accent hover:text-accent-foreground cursor-pointer rounded-md">
                   <SelectValue placeholder="한국어" />
                 </SelectTrigger>
@@ -123,10 +143,10 @@ export function AppLayout({ children, onChange, translateText }: AppLayoutProps)
                       <span>프로필 수정</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2">
+                  {/* <DropdownMenuItem className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     <span>{user?.username}</span>
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
                   <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 md:hidden">
                     <LogOut className="h-4 w-4" />
                     <span>{t("logout")}</span>

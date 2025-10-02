@@ -5,6 +5,6 @@ import * as postController from '../controllers/postController.js'
 const router = express.Router();
 router.get('/', postController.list);
 router.get('/:id', postController.detail);
-router.post('/', postController.createAndSendSMS);
+// router.post('/', postController.createAndSendSMS);
 
 export default router;  

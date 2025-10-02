@@ -30,3 +30,10 @@ export async function updatePassword(userId, newHash) {
         [newHash, userId]
     );
 }
+
+export async function getSmsReceivableUsers() {
+    const [rows] = await db.query(
+        `SELECT phone FROM users WHERE role = 'user' AND phone IS NOT NULL`
+    );
+    return rows;
+}
